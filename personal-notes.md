@@ -20,3 +20,7 @@
 ## Original redact.py
 - Without testing, I can tell it fails many tests since the output of the skill may be not enforced and key is recorded in plaintext in the logs
     - Fails hyphens, spaces in between, code markdown, etc.
+
+## Improved redact.py
+- Decide to overreact on words that include 'rly' since false positives are much better
+    - Tradeoff to write in report later
