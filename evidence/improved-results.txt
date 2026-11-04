@@ -1,8 +1,17 @@
+test_failed_match_does_not_backtrack (test_redact.RedactTests.test_failed_match_does_not_backtrack) ... ok
 test_inputs_present (test_redact.RedactTests.test_inputs_present) ... ok
 test_key_after_rly_name_keeps_prose (test_redact.RedactTests.test_key_after_rly_name_keeps_prose) ... ok
 test_leak_base64_encoded (test_redact.RedactTests.test_leak_base64_encoded) ... FAIL
 test_leak_bearer_header (test_redact.RedactTests.test_leak_bearer_header) ... ok
 test_leak_bearer_hyphenated (test_redact.RedactTests.test_leak_bearer_hyphenated) ... ok
+test_leak_blank_line_and_spaces (test_redact.RedactTests.test_leak_blank_line_and_spaces) ... ok
+test_leak_blank_line_crlf (test_redact.RedactTests.test_leak_blank_line_crlf) ... ok
+test_leak_blank_line_inside_prefix (test_redact.RedactTests.test_leak_blank_line_inside_prefix) ... ok
+test_leak_blank_line_quote (test_redact.RedactTests.test_leak_blank_line_quote) ... ok
+test_leak_blank_line_real (test_redact.RedactTests.test_leak_blank_line_real) ... ok
+test_leak_blank_line_split (test_redact.RedactTests.test_leak_blank_line_split) ... ok
+test_leak_blank_line_whitespace_only (test_redact.RedactTests.test_leak_blank_line_whitespace_only) ... ok
+test_leak_blank_lines_several (test_redact.RedactTests.test_leak_blank_lines_several) ... ok
 test_leak_hyphen_en_dash (test_redact.RedactTests.test_leak_hyphen_en_dash) ... ok
 test_leak_hyphen_groups_of_4 (test_redact.RedactTests.test_leak_hyphen_groups_of_4) ... ok
 test_leak_hyphen_groups_of_6 (test_redact.RedactTests.test_leak_hyphen_groups_of_6) ... ok
@@ -43,6 +52,7 @@ test_leak_wrap_quote_prefix (test_redact.RedactTests.test_leak_wrap_quote_prefix
 test_leak_wrap_with_hyphens (test_redact.RedactTests.test_leak_wrap_with_hyphens) ... ok
 test_leak_zero_width_space (test_redact.RedactTests.test_leak_zero_width_space) ... ok
 test_over_redacted_long_rly_name (test_redact.RedactTests.test_over_redacted_long_rly_name) ... ok
+test_over_redacted_rly_name_then_paragraph (test_redact.RedactTests.test_over_redacted_rly_name_then_paragraph) ... ok
 test_over_redacted_rly_name_then_prose (test_redact.RedactTests.test_over_redacted_rly_name_then_prose) ... ok
 test_over_redacted_rly_name_wrapped (test_redact.RedactTests.test_over_redacted_rly_name_wrapped) ... ok
 test_safe_already_redacted (test_redact.RedactTests.test_safe_already_redacted) ... ok
@@ -61,7 +71,7 @@ test_safe_words_ending_in_rly (test_redact.RedactTests.test_safe_words_ending_in
 FAIL: test_leak_base64_encoded (test_redact.RedactTests.test_leak_base64_encoded)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/Users/richardfeng/VSCode/assessments/intelligent audit/takehome/tests/test_redact.py", line 78, in test
+  File "/Users/richardfeng/VSCode/assessments/intelligent audit/takehome/tests/test_redact.py", line 84, in test
     self.assertFalse(survived, f"key fragments survived in output:\n{output}")
     ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ['FAKE', 'AKE7', 'KE7x', 'E7xK', '7xKp', 'xKp2', 'Kp2M', 'p2Mz', '2Mz9', 'Mz9L', 'z9Lf', '9LfT', 'LfT4', 'fT4v', 'T4vR', '4vRn', 'vRn8', 'Rn8W', 'n8Wb', '8WbY', 'WbY3'] is not false : key fragments survived in output:
@@ -72,7 +82,7 @@ AssertionError: ['FAKE', 'AKE7', 'KE7x', 'E7xK', '7xKp', 'xKp2', 'Kp2M', 'p2Mz',
 FAIL: test_leak_url_encoded (test_redact.RedactTests.test_leak_url_encoded)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/Users/richardfeng/VSCode/assessments/intelligent audit/takehome/tests/test_redact.py", line 78, in test
+  File "/Users/richardfeng/VSCode/assessments/intelligent audit/takehome/tests/test_redact.py", line 84, in test
     self.assertFalse(survived, f"key fragments survived in output:\n{output}")
     ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ['5FFA', 'FFAK', 'FAKE', 'AKE7', 'KE7x', 'E7xK', '7xKp', 'xKp2', 'Kp2M', 'p2Mz', '2Mz9', 'Mz9L', 'z9Lf', '9LfT', 'LfT4', 'fT4v', 'T4vR', '4vRn', 'vRn8', 'Rn8W', 'n8Wb'] is not false : key fragments survived in output:
@@ -80,6 +90,6 @@ GET /v1/keys/lookup?service=billing-sync&key=rly%5FFAKE7xKp2Mz9LfT4vRn8WbY3 HTTP
 
 
 ----------------------------------------------------------------------
-Ran 58 tests in 0.011s
+Ran 68 tests in 0.020s
 
 FAILED (failures=2)

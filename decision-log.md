@@ -14,3 +14,7 @@
 2:55pm: Decided against using a randomness checker
 - Accept that over-redaction is better than leaking a key
 - Also I don't want to use something like entropy calculation for a mock
+3:14pm: Added space into the pattern and added split line detection
+- Now the redaction can redact across paragraphs if an 'rly' is detected. 
+    - Still trading off over redaction over leaking key
+3:21pm: Begin reviewing code

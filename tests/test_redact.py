@@ -61,6 +61,12 @@ class RedactTests(unittest.TestCase):
         key = "rly_FAKE7xKp2Mz9LfT4vRn8WbY3"
         self.assertEqual(redact(f"rly_config is set {key}\n"), "rly_config is set [REDACTED]\n")
 
+    def test_failed_match_does_not_backtrack(self):
+        # 23 characters is one short of a key, so every gap gets retried. Ambiguous gaps hang here.
+        for gap in ("\r\n\r\n", "\\r\\n\\r\\n", " \n \n ", "- -", ">\n>\n"):
+            text = "rly_" + f"a{gap}" * 23
+            self.assertEqual(redact(text), text)
+
 
 def leak_test(path):
     def test(self):

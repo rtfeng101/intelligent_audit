@@ -5,16 +5,16 @@ import re
 SEP = r"_\-\u00ad\u2010-\u2015\u2212\ufe58\ufe63\uff0d\uff3f\u200b-\u200d\u2060\ufeff"
 # Tab, ASCII space and the Unicode spaces, including non-breaking.
 SPACE = r" \t\u00a0\u2000-\u200a\u202f\u205f\u3000"
-# A line break, real or JSON-escaped.
-NEWLINE = r"(?:\r\n?|\n|\\r(?:\\n)?|\\n)"
-# One line break with any indent or "> " quote marker around it.
-BREAK = rf"[ \t]*{NEWLINE}[ \t>]*"
+# A line break, real or JSON-escaped. CRLF must only match as one break, not CR then LF,
+# because NEWLINE gets repeated below and that ambiguity would backtrack exponentially.
+NEWLINE = r"(?:\r\n|\r(?!\n)|\n|\\r\\n|\\r(?!\\n)|\\n)"
+# One or more line breaks (so blank lines too) with any indent or "> " quote marker around them.
+BREAK = rf"(?:[ \t>]*{NEWLINE})+[ \t>]*"
 # What may sit between two key characters. Each input can match only one way, because
 # ambiguity here (e.g. a second optional SEP run) backtracks exponentially on bad input.
-# shortcut: blank lines aren't gaps, so a key split across one leaks. Upgrade if one turns up.
 GAP = rf"[{SEP}]*(?:{BREAK}[{SEP}]*)?"
 # GAP plus spaces on the same line. Same one-way-only rule.
-SPACED_GAP = rf"[{SEP}{SPACE}]*(?:{NEWLINE}[{SEP}{SPACE}>]*)?"
+SPACED_GAP = rf"[{SEP}{SPACE}]*(?:{NEWLINE}[{SEP}{SPACE}>]*)*"
 
 PATTERNS = [
     # Count the 24 key characters rather than the match length. The lookbehind keeps words
