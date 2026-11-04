@@ -17,4 +17,6 @@
 3:14pm: Added space into the pattern and added split line detection
 - Now the redaction can redact across paragraphs if an 'rly' is detected. 
     - Still trading off over redaction over leaking key
-3:21pm: Begin reviewing code
+- Improved `redact.py` looks a bit messy but good enough spot to move on
+3:21pm: Write 6 review items for deliverable
+3:41pm: 
