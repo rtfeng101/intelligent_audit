@@ -24,3 +24,6 @@
 ## Improved redact.py
 - Decide to overreact on words that include 'rly' since false positives are much better
     - Tradeoff to write in report later
+- Have to decide on if spaces should be reported
+    - Requires key to look random
+    - ??

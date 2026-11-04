@@ -1,7 +1,8 @@
 """Run: python3 -m unittest discover -s tests -v
 
 Tests original/redact.py by default. Set REDACT_PATH to test another file.
-Every file in tests/inputs/leak and tests/inputs/safe becomes its own test.
+Every file in tests/inputs/leak, safe and over_redacted becomes its own test.
+over_redacted pins harmless text we accept losing, so that trade-off stays visible.
 """
 import base64
 import importlib.util
@@ -53,6 +54,12 @@ class RedactTests(unittest.TestCase):
         # Without this, an empty or moved folder would generate no tests and pass.
         self.assertTrue(inputs("leak"))
         self.assertTrue(inputs("safe"))
+        self.assertTrue(inputs("over_redacted"))
+
+    def test_key_after_rly_name_keeps_prose(self):
+        # The leak harness can't check this: its loose key regex starts at rly_config.
+        key = "rly_FAKE7xKp2Mz9LfT4vRn8WbY3"
+        self.assertEqual(redact(f"rly_config is set {key}\n"), "rly_config is set [REDACTED]\n")
 
 
 def leak_test(path):
@@ -79,6 +86,15 @@ def safe_test(path):
     return test
 
 
+def over_redacted_test(path):
+    def test(self):
+        text = read(path)
+        self.assertIn("[REDACTED]", redact(text))
+    return test
+
+
+for path in inputs("over_redacted"):
+    setattr(RedactTests, f"test_over_redacted_{path.stem}", over_redacted_test(path))
 for path in inputs("leak"):
     setattr(RedactTests, f"test_leak_{path.stem}", leak_test(path))
 for path in inputs("safe"):

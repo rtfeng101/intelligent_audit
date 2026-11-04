@@ -1,0 +1,85 @@
+test_inputs_present (test_redact.RedactTests.test_inputs_present) ... ok
+test_key_after_rly_name_keeps_prose (test_redact.RedactTests.test_key_after_rly_name_keeps_prose) ... ok
+test_leak_base64_encoded (test_redact.RedactTests.test_leak_base64_encoded) ... FAIL
+test_leak_bearer_header (test_redact.RedactTests.test_leak_bearer_header) ... ok
+test_leak_bearer_hyphenated (test_redact.RedactTests.test_leak_bearer_hyphenated) ... ok
+test_leak_hyphen_en_dash (test_redact.RedactTests.test_leak_hyphen_en_dash) ... ok
+test_leak_hyphen_groups_of_4 (test_redact.RedactTests.test_leak_hyphen_groups_of_4) ... ok
+test_leak_hyphen_groups_of_6 (test_redact.RedactTests.test_leak_hyphen_groups_of_6) ... ok
+test_leak_hyphen_groups_of_8 (test_redact.RedactTests.test_leak_hyphen_groups_of_8) ... ok
+test_leak_hyphen_in_json (test_redact.RedactTests.test_leak_hyphen_in_json) ... ok
+test_leak_hyphen_irregular (test_redact.RedactTests.test_leak_hyphen_irregular) ... ok
+test_leak_hyphen_nonbreaking (test_redact.RedactTests.test_leak_hyphen_nonbreaking) ... ok
+test_leak_hyphen_replaces_underscore (test_redact.RedactTests.test_leak_hyphen_replaces_underscore) ... ok
+test_leak_incident_audit_comment (test_redact.RedactTests.test_leak_incident_audit_comment) ... ok
+test_leak_json_response (test_redact.RedactTests.test_leak_json_response) ... ok
+test_leak_plain_text (test_redact.RedactTests.test_leak_plain_text) ... ok
+test_leak_space_after_prefix (test_redact.RedactTests.test_leak_space_after_prefix) ... ok
+test_leak_space_and_wrap (test_redact.RedactTests.test_leak_space_and_wrap) ... ok
+test_leak_space_around_hyphen (test_redact.RedactTests.test_leak_space_around_hyphen) ... ok
+test_leak_space_bearer_long_first_chunk (test_redact.RedactTests.test_leak_space_bearer_long_first_chunk) ... ok
+test_leak_space_before_underscore (test_redact.RedactTests.test_leak_space_before_underscore) ... ok
+test_leak_space_every_character (test_redact.RedactTests.test_leak_space_every_character) ... ok
+test_leak_space_groups_of_4 (test_redact.RedactTests.test_leak_space_groups_of_4) ... ok
+test_leak_space_in_json (test_redact.RedactTests.test_leak_space_in_json) ... ok
+test_leak_space_inside_prefix (test_redact.RedactTests.test_leak_space_inside_prefix) ... ok
+test_leak_space_mid_key (test_redact.RedactTests.test_leak_space_mid_key) ... ok
+test_leak_space_multiple_and_tab (test_redact.RedactTests.test_leak_space_multiple_and_tab) ... ok
+test_leak_space_nonbreaking (test_redact.RedactTests.test_leak_space_nonbreaking) ... ok
+test_leak_space_unicode_em (test_redact.RedactTests.test_leak_space_unicode_em) ... ok
+test_leak_two_keys_hyphen_and_wrap (test_redact.RedactTests.test_leak_two_keys_hyphen_and_wrap) ... ok
+test_leak_two_keys_plain (test_redact.RedactTests.test_leak_two_keys_plain) ... ok
+test_leak_underscore_groups_of_4 (test_redact.RedactTests.test_leak_underscore_groups_of_4) ... ok
+test_leak_url_encoded (test_redact.RedactTests.test_leak_url_encoded) ... FAIL
+test_leak_wrap_after_bearer_partial (test_redact.RedactTests.test_leak_wrap_after_bearer_partial) ... ok
+test_leak_wrap_after_prefix (test_redact.RedactTests.test_leak_wrap_after_prefix) ... ok
+test_leak_wrap_indented (test_redact.RedactTests.test_leak_wrap_indented) ... ok
+test_leak_wrap_inside_prefix (test_redact.RedactTests.test_leak_wrap_inside_prefix) ... ok
+test_leak_wrap_json_escaped_newline (test_redact.RedactTests.test_leak_wrap_json_escaped_newline) ... ok
+test_leak_wrap_mid_key_crlf (test_redact.RedactTests.test_leak_wrap_mid_key_crlf) ... ok
+test_leak_wrap_mid_key_lf (test_redact.RedactTests.test_leak_wrap_mid_key_lf) ... ok
+test_leak_wrap_multiple_lines (test_redact.RedactTests.test_leak_wrap_multiple_lines) ... ok
+test_leak_wrap_quote_prefix (test_redact.RedactTests.test_leak_wrap_quote_prefix) ... ok
+test_leak_wrap_with_hyphens (test_redact.RedactTests.test_leak_wrap_with_hyphens) ... ok
+test_leak_zero_width_space (test_redact.RedactTests.test_leak_zero_width_space) ... ok
+test_over_redacted_long_rly_name (test_redact.RedactTests.test_over_redacted_long_rly_name) ... ok
+test_over_redacted_rly_name_then_prose (test_redact.RedactTests.test_over_redacted_rly_name_then_prose) ... ok
+test_over_redacted_rly_name_wrapped (test_redact.RedactTests.test_over_redacted_rly_name_wrapped) ... ok
+test_safe_already_redacted (test_redact.RedactTests.test_safe_already_redacted) ... ok
+test_safe_bearer_in_prose (test_redact.RedactTests.test_safe_bearer_in_prose) ... ok
+test_safe_crlf_and_blank_lines (test_redact.RedactTests.test_safe_crlf_and_blank_lines) ... ok
+test_safe_empty (test_redact.RedactTests.test_safe_empty) ... ok
+test_safe_hyphenated_names (test_redact.RedactTests.test_safe_hyphenated_names) ... ok
+test_safe_long_identifiers (test_redact.RedactTests.test_safe_long_identifiers) ... ok
+test_safe_non_ascii_text (test_redact.RedactTests.test_safe_non_ascii_text) ... ok
+test_safe_prose_incident_note (test_redact.RedactTests.test_safe_prose_incident_note) ... ok
+test_safe_rly_short_names (test_redact.RedactTests.test_safe_rly_short_names) ... ok
+test_safe_skill_command_placeholder (test_redact.RedactTests.test_safe_skill_command_placeholder) ... ok
+test_safe_words_ending_in_rly (test_redact.RedactTests.test_safe_words_ending_in_rly) ... ok
+
+======================================================================
+FAIL: test_leak_base64_encoded (test_redact.RedactTests.test_leak_base64_encoded)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/richardfeng/VSCode/assessments/intelligent audit/takehome/tests/test_redact.py", line 78, in test
+    self.assertFalse(survived, f"key fragments survived in output:\n{output}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ['FAKE', 'AKE7', 'KE7x', 'E7xK', '7xKp', 'xKp2', 'Kp2M', 'p2Mz', '2Mz9', 'Mz9L', 'z9Lf', '9LfT', 'LfT4', 'fT4v', 'T4vR', '4vRn', 'vRn8', 'Rn8W', 'n8Wb', '8WbY', 'WbY3'] is not false : key fragments survived in output:
+{"service":"billing-sync","key_b64":"cmx5X0ZBS0U3eEtwMk16OUxmVDR2Um44V2JZMw=="}
+
+
+======================================================================
+FAIL: test_leak_url_encoded (test_redact.RedactTests.test_leak_url_encoded)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/richardfeng/VSCode/assessments/intelligent audit/takehome/tests/test_redact.py", line 78, in test
+    self.assertFalse(survived, f"key fragments survived in output:\n{output}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ['5FFA', 'FFAK', 'FAKE', 'AKE7', 'KE7x', 'E7xK', '7xKp', 'xKp2', 'Kp2M', 'p2Mz', '2Mz9', 'Mz9L', 'z9Lf', '9LfT', 'LfT4', 'fT4v', 'T4vR', '4vRn', 'vRn8', 'Rn8W', 'n8Wb'] is not false : key fragments survived in output:
+GET /v1/keys/lookup?service=billing-sync&key=rly%5FFAKE7xKp2Mz9LfT4vRn8WbY3 HTTP/1.1
+
+
+----------------------------------------------------------------------
+Ran 58 tests in 0.011s
+
+FAILED (failures=2)

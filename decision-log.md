@@ -11,3 +11,6 @@
 - Added two test: URL encoding, base64 encoding
 2:31pm: Begin writing improved redact
 - Use Claude Code to get started
+2:55pm: Decided against using a randomness checker
+- Accept that over-redaction is better than leaking a key
+- Also I don't want to use something like entropy calculation for a mock
