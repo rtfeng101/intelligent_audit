@@ -1,0 +1,337 @@
+test_inputs_present (test_redact.RedactTests.test_inputs_present) ... ok
+test_leak_base64_encoded (test_redact.RedactTests.test_leak_base64_encoded) ... FAIL
+test_leak_bearer_header (test_redact.RedactTests.test_leak_bearer_header) ... ok
+test_leak_bearer_hyphenated (test_redact.RedactTests.test_leak_bearer_hyphenated) ... ok
+test_leak_hyphen_en_dash (test_redact.RedactTests.test_leak_hyphen_en_dash) ... FAIL
+test_leak_hyphen_groups_of_4 (test_redact.RedactTests.test_leak_hyphen_groups_of_4) ... FAIL
+test_leak_hyphen_groups_of_6 (test_redact.RedactTests.test_leak_hyphen_groups_of_6) ... FAIL
+test_leak_hyphen_groups_of_8 (test_redact.RedactTests.test_leak_hyphen_groups_of_8) ... FAIL
+test_leak_hyphen_in_json (test_redact.RedactTests.test_leak_hyphen_in_json) ... FAIL
+test_leak_hyphen_irregular (test_redact.RedactTests.test_leak_hyphen_irregular) ... FAIL
+test_leak_hyphen_nonbreaking (test_redact.RedactTests.test_leak_hyphen_nonbreaking) ... FAIL
+test_leak_hyphen_replaces_underscore (test_redact.RedactTests.test_leak_hyphen_replaces_underscore) ... FAIL
+test_leak_incident_audit_comment (test_redact.RedactTests.test_leak_incident_audit_comment) ... FAIL
+test_leak_json_response (test_redact.RedactTests.test_leak_json_response) ... ok
+test_leak_plain_text (test_redact.RedactTests.test_leak_plain_text) ... ok
+test_leak_two_keys_hyphen_and_wrap (test_redact.RedactTests.test_leak_two_keys_hyphen_and_wrap) ... FAIL
+test_leak_two_keys_plain (test_redact.RedactTests.test_leak_two_keys_plain) ... ok
+test_leak_url_encoded (test_redact.RedactTests.test_leak_url_encoded) ... FAIL
+test_leak_wrap_after_bearer_partial (test_redact.RedactTests.test_leak_wrap_after_bearer_partial) ... FAIL
+test_leak_wrap_after_prefix (test_redact.RedactTests.test_leak_wrap_after_prefix) ... FAIL
+test_leak_wrap_indented (test_redact.RedactTests.test_leak_wrap_indented) ... FAIL
+test_leak_wrap_inside_prefix (test_redact.RedactTests.test_leak_wrap_inside_prefix) ... FAIL
+test_leak_wrap_json_escaped_newline (test_redact.RedactTests.test_leak_wrap_json_escaped_newline) ... FAIL
+test_leak_wrap_mid_key_crlf (test_redact.RedactTests.test_leak_wrap_mid_key_crlf) ... FAIL
+test_leak_wrap_mid_key_lf (test_redact.RedactTests.test_leak_wrap_mid_key_lf) ... FAIL
+test_leak_wrap_multiple_lines (test_redact.RedactTests.test_leak_wrap_multiple_lines) ... FAIL
+test_leak_wrap_quote_prefix (test_redact.RedactTests.test_leak_wrap_quote_prefix) ... FAIL
+test_leak_wrap_with_hyphens (test_redact.RedactTests.test_leak_wrap_with_hyphens) ... FAIL
+test_leak_zero_width_space (test_redact.RedactTests.test_leak_zero_width_space) ... FAIL
+test_safe_already_redacted (test_redact.RedactTests.test_safe_already_redacted) ... ok
+test_safe_bearer_in_prose (test_redact.RedactTests.test_safe_bearer_in_prose) ... ok
+test_safe_crlf_and_blank_lines (test_redact.RedactTests.test_safe_crlf_and_blank_lines) ... ok
+test_safe_empty (test_redact.RedactTests.test_safe_empty) ... ok
+test_safe_hyphenated_names (test_redact.RedactTests.test_safe_hyphenated_names) ... ok
+test_safe_long_identifiers (test_redact.RedactTests.test_safe_long_identifiers) ... ok
+test_safe_non_ascii_text (test_redact.RedactTests.test_safe_non_ascii_text) ... ok
+test_safe_prose_incident_note (test_redact.RedactTests.test_safe_prose_incident_note) ... ok
+test_safe_rly_name_then_prose (test_redact.RedactTests.test_safe_rly_name_then_prose) ... ok
+test_safe_rly_short_names (test_redact.RedactTests.test_safe_rly_short_names) ... ok
+test_safe_skill_command_placeholder (test_redact.RedactTests.test_safe_skill_command_placeholder) ... ok
+test_safe_words_ending_in_rly (test_redact.RedactTests.test_safe_words_ending_in_rly) ... FAIL
+
+======================================================================
+FAIL: test_leak_base64_encoded (test_redact.RedactTests.test_leak_base64_encoded)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/richardfeng/VSCode/assessments/intelligent audit/takehome/tests/test_redact.py", line 71, in test
+    self.assertFalse(survived, f"key fragments survived in output:\n{output}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ['FAKE', 'AKE7', 'KE7x', 'E7xK', '7xKp', 'xKp2', 'Kp2M', 'p2Mz', '2Mz9', 'Mz9L', 'z9Lf', '9LfT', 'LfT4', 'fT4v', 'T4vR', '4vRn', 'vRn8', 'Rn8W', 'n8Wb', '8WbY', 'WbY3'] is not false : key fragments survived in output:
+{"service":"billing-sync","key_b64":"cmx5X0ZBS0U3eEtwMk16OUxmVDR2Um44V2JZMw=="}
+
+
+======================================================================
+FAIL: test_leak_hyphen_en_dash (test_redact.RedactTests.test_leak_hyphen_en_dash)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/richardfeng/VSCode/assessments/intelligent audit/takehome/tests/test_redact.py", line 71, in test
+    self.assertFalse(survived, f"key fragments survived in output:\n{output}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ['FAKE', 'AKE7', 'KE7x', 'E7xK', '7xKp', 'xKp2', 'Kp2M', 'p2Mz', '2Mz9', 'Mz9L', 'z9Lf', '9LfT', 'LfT4', 'fT4v', 'T4vR', '4vRn', 'vRn8', 'Rn8W', 'n8Wb', '8WbY', 'WbY3'] is not false : key fragments survived in output:
+New key: rly_FAKE–7xKp–2Mz9–LfT4–vRn8–WbY3
+
+
+======================================================================
+FAIL: test_leak_hyphen_groups_of_4 (test_redact.RedactTests.test_leak_hyphen_groups_of_4)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/richardfeng/VSCode/assessments/intelligent audit/takehome/tests/test_redact.py", line 71, in test
+    self.assertFalse(survived, f"key fragments survived in output:\n{output}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ['FAKE', 'AKE7', 'KE7x', 'E7xK', '7xKp', 'xKp2', 'Kp2M', 'p2Mz', '2Mz9', 'Mz9L', 'z9Lf', '9LfT', 'LfT4', 'fT4v', 'T4vR', '4vRn', 'vRn8', 'Rn8W', 'n8Wb', '8WbY', 'WbY3'] is not false : key fragments survived in output:
+New key: rly_FAKE-7xKp-2Mz9-LfT4-vRn8-WbY3
+
+
+======================================================================
+FAIL: test_leak_hyphen_groups_of_6 (test_redact.RedactTests.test_leak_hyphen_groups_of_6)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/richardfeng/VSCode/assessments/intelligent audit/takehome/tests/test_redact.py", line 71, in test
+    self.assertFalse(survived, f"key fragments survived in output:\n{output}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ['FAKE', 'AKE7', 'KE7x', 'E7xK', '7xKp', 'xKp2', 'Kp2M', 'p2Mz', '2Mz9', 'Mz9L', 'z9Lf', '9LfT', 'LfT4', 'fT4v', 'T4vR', '4vRn', 'vRn8', 'Rn8W', 'n8Wb', '8WbY', 'WbY3'] is not false : key fragments survived in output:
+New key: rly_FAKE7x-Kp2Mz9-LfT4vR-n8WbY3
+
+
+======================================================================
+FAIL: test_leak_hyphen_groups_of_8 (test_redact.RedactTests.test_leak_hyphen_groups_of_8)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/richardfeng/VSCode/assessments/intelligent audit/takehome/tests/test_redact.py", line 71, in test
+    self.assertFalse(survived, f"key fragments survived in output:\n{output}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ['FAKE', 'AKE7', 'KE7x', 'E7xK', '7xKp', 'xKp2', 'Kp2M', 'p2Mz', '2Mz9', 'Mz9L', 'z9Lf', '9LfT', 'LfT4', 'fT4v', 'T4vR', '4vRn', 'vRn8', 'Rn8W', 'n8Wb', '8WbY', 'WbY3'] is not false : key fragments survived in output:
+New key: rly_FAKE7xKp-2Mz9LfT4-vRn8WbY3
+
+
+======================================================================
+FAIL: test_leak_hyphen_in_json (test_redact.RedactTests.test_leak_hyphen_in_json)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/richardfeng/VSCode/assessments/intelligent audit/takehome/tests/test_redact.py", line 71, in test
+    self.assertFalse(survived, f"key fragments survived in output:\n{output}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ['FAKE', 'AKE7', 'KE7x', 'E7xK', '7xKp', 'xKp2', 'Kp2M', 'p2Mz', '2Mz9', 'Mz9L', 'z9Lf', '9LfT', 'LfT4', 'fT4v', 'T4vR', '4vRn', 'vRn8', 'Rn8W', 'n8Wb', '8WbY', 'WbY3'] is not false : key fragments survived in output:
+{"service":"billing-sync","key":"rly_FAKE-7xKp-2Mz9-LfT4-vRn8-WbY3"}
+
+
+======================================================================
+FAIL: test_leak_hyphen_irregular (test_redact.RedactTests.test_leak_hyphen_irregular)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/richardfeng/VSCode/assessments/intelligent audit/takehome/tests/test_redact.py", line 71, in test
+    self.assertFalse(survived, f"key fragments survived in output:\n{output}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ['FAKE', 'AKE7', 'KE7x', 'E7xK', '7xKp', 'xKp2', 'Kp2M', 'p2Mz', '2Mz9', 'Mz9L', 'z9Lf', '9LfT', 'LfT4', 'fT4v', 'T4vR', '4vRn', 'vRn8', 'Rn8W', 'n8Wb', '8WbY', 'WbY3'] is not false : key fragments survived in output:
+New key: rly_FAKE7-xKp2Mz9L-fT4-vRn8WbY3
+
+
+======================================================================
+FAIL: test_leak_hyphen_nonbreaking (test_redact.RedactTests.test_leak_hyphen_nonbreaking)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/richardfeng/VSCode/assessments/intelligent audit/takehome/tests/test_redact.py", line 71, in test
+    self.assertFalse(survived, f"key fragments survived in output:\n{output}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ['FAKE', 'AKE7', 'KE7x', 'E7xK', '7xKp', 'xKp2', 'Kp2M', 'p2Mz', '2Mz9', 'Mz9L', 'z9Lf', '9LfT', 'LfT4', 'fT4v', 'T4vR', '4vRn', 'vRn8', 'Rn8W', 'n8Wb', '8WbY', 'WbY3'] is not false : key fragments survived in output:
+New key: rly_FAKE‑7xKp‑2Mz9‑LfT4‑vRn8‑WbY3
+
+
+======================================================================
+FAIL: test_leak_hyphen_replaces_underscore (test_redact.RedactTests.test_leak_hyphen_replaces_underscore)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/richardfeng/VSCode/assessments/intelligent audit/takehome/tests/test_redact.py", line 71, in test
+    self.assertFalse(survived, f"key fragments survived in output:\n{output}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ['FAKE', 'AKE7', 'KE7x', 'E7xK', '7xKp', 'xKp2', 'Kp2M', 'p2Mz', '2Mz9', 'Mz9L', 'z9Lf', '9LfT', 'LfT4', 'fT4v', 'T4vR', '4vRn', 'vRn8', 'Rn8W', 'n8Wb', '8WbY', 'WbY3'] is not false : key fragments survived in output:
+New key: rly-FAKE-7xKp-2Mz9-LfT4-vRn8-WbY3
+
+
+======================================================================
+FAIL: test_leak_incident_audit_comment (test_redact.RedactTests.test_leak_incident_audit_comment)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/richardfeng/VSCode/assessments/intelligent audit/takehome/tests/test_redact.py", line 71, in test
+    self.assertFalse(survived, f"key fragments survived in output:\n{output}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ['FAKE', 'FAKE', 'AKE9', 'KE9q', 'E9qW', '9qWd', 'qWd4', 'Wd4N', 'd4Ns', '4Ns6', 'Ns6G', 's6Gh', '6GhJ', 'GhJ1', 'hJ1t', 'J1tB', '1tBe', 'tBe5', 'Be5U', 'e5Uo', '5UoZ', 'UoZ8'] is not false : key fragments survived in output:
+Rotated the key for billing-sync.
+
+Request:
+POST https://relay.example.internal/v1/keys/rotate
+Authorization: Bearer [REDACTED]
+{"service":"billing-sync"}
+
+Response:
+200 OK
+{"service":"billing-sync","new_key":"rly_FAKE-9qWd-4Ns6-GhJ1-tBe5-UoZ8"}
+
+
+======================================================================
+FAIL: test_leak_two_keys_hyphen_and_wrap (test_redact.RedactTests.test_leak_two_keys_hyphen_and_wrap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/richardfeng/VSCode/assessments/intelligent audit/takehome/tests/test_redact.py", line 71, in test
+    self.assertFalse(survived, f"key fragments survived in output:\n{output}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ['FAKE', 'AKE7', 'KE7x', 'E7xK', '7xKp', 'xKp2', 'Kp2M', 'p2Mz', '2Mz9', 'Mz9L', 'z9Lf', '9LfT', 'LfT4', 'fT4v', 'T4vR', '4vRn', 'vRn8', 'Rn8W', 'n8Wb', '8WbY', 'WbY3', 'FAKE', 'AKE9', 'KE9q', 'E9qW', '9qWd', 'qWd4', 'Wd4N', 'd4Ns', '4Ns6', 'Ns6G', 's6Gh', '6GhJ', 'GhJ1', 'hJ1t', 'J1tB', '1tBe', 'tBe5', 'Be5U', 'e5Uo', '5UoZ', 'UoZ8'] is not false : key fragments survived in output:
+old=rly_FAKE-7xKp-2Mz9-LfT4-vRn8-WbY3
+new=rly_FAKE9qWd4Ns6
+GhJ1tBe5UoZ8
+
+
+======================================================================
+FAIL: test_leak_url_encoded (test_redact.RedactTests.test_leak_url_encoded)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/richardfeng/VSCode/assessments/intelligent audit/takehome/tests/test_redact.py", line 71, in test
+    self.assertFalse(survived, f"key fragments survived in output:\n{output}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ['5FFA', 'FFAK', 'FAKE', 'AKE7', 'KE7x', 'E7xK', '7xKp', 'xKp2', 'Kp2M', 'p2Mz', '2Mz9', 'Mz9L', 'z9Lf', '9LfT', 'LfT4', 'fT4v', 'T4vR', '4vRn', 'vRn8', 'Rn8W', 'n8Wb'] is not false : key fragments survived in output:
+GET /v1/keys/lookup?service=billing-sync&key=rly%5FFAKE7xKp2Mz9LfT4vRn8WbY3 HTTP/1.1
+
+
+======================================================================
+FAIL: test_leak_wrap_after_bearer_partial (test_redact.RedactTests.test_leak_wrap_after_bearer_partial)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/richardfeng/VSCode/assessments/intelligent audit/takehome/tests/test_redact.py", line 71, in test
+    self.assertFalse(survived, f"key fragments survived in output:\n{output}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ['n8Wb', '8WbY', 'WbY3'] is not false : key fragments survived in output:
+Authorization: [REDACTED]
+n8WbY3
+
+
+======================================================================
+FAIL: test_leak_wrap_after_prefix (test_redact.RedactTests.test_leak_wrap_after_prefix)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/richardfeng/VSCode/assessments/intelligent audit/takehome/tests/test_redact.py", line 71, in test
+    self.assertFalse(survived, f"key fragments survived in output:\n{output}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ['FAKE', 'AKE7', 'KE7x', 'E7xK', '7xKp', 'xKp2', 'Kp2M', 'p2Mz', '2Mz9', 'Mz9L', 'z9Lf', '9LfT', 'LfT4', 'fT4v', 'T4vR', '4vRn', 'vRn8', 'Rn8W', 'n8Wb', '8WbY', 'WbY3'] is not false : key fragments survived in output:
+rly_
+FAKE7xKp2Mz9LfT4vRn8WbY3
+
+
+======================================================================
+FAIL: test_leak_wrap_indented (test_redact.RedactTests.test_leak_wrap_indented)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/richardfeng/VSCode/assessments/intelligent audit/takehome/tests/test_redact.py", line 71, in test
+    self.assertFalse(survived, f"key fragments survived in output:\n{output}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ['FAKE', 'AKE7', 'KE7x', 'E7xK', '7xKp', 'xKp2', 'Kp2M', 'p2Mz', '2Mz9', 'Mz9L', 'z9Lf', '9LfT', 'LfT4', 'fT4v', 'T4vR', '4vRn', 'vRn8', 'Rn8W', 'n8Wb', '8WbY', 'WbY3'] is not false : key fragments survived in output:
+    rly_FAKE7xKp2Mz9
+    LfT4vRn8WbY3
+
+
+======================================================================
+FAIL: test_leak_wrap_inside_prefix (test_redact.RedactTests.test_leak_wrap_inside_prefix)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/richardfeng/VSCode/assessments/intelligent audit/takehome/tests/test_redact.py", line 71, in test
+    self.assertFalse(survived, f"key fragments survived in output:\n{output}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ['FAKE', 'AKE7', 'KE7x', 'E7xK', '7xKp', 'xKp2', 'Kp2M', 'p2Mz', '2Mz9', 'Mz9L', 'z9Lf', '9LfT', 'LfT4', 'fT4v', 'T4vR', '4vRn', 'vRn8', 'Rn8W', 'n8Wb', '8WbY', 'WbY3'] is not false : key fragments survived in output:
+New key: rl
+y_FAKE7xKp2Mz9LfT4vRn8WbY3
+
+
+======================================================================
+FAIL: test_leak_wrap_json_escaped_newline (test_redact.RedactTests.test_leak_wrap_json_escaped_newline)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/richardfeng/VSCode/assessments/intelligent audit/takehome/tests/test_redact.py", line 71, in test
+    self.assertFalse(survived, f"key fragments survived in output:\n{output}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ['FAKE', 'AKE7', 'KE7x', 'E7xK', '7xKp', 'xKp2', 'Kp2M', 'p2Mz', '2Mz9', 'Mz9n', 'z9nL', '9nLf', 'nLfT', 'LfT4', 'fT4v', 'T4vR', '4vRn', 'vRn8', 'Rn8W', 'n8Wb', '8WbY'] is not false : key fragments survived in output:
+{"key":"rly_FAKE7xKp2Mz9\nLfT4vRn8WbY3"}
+
+
+======================================================================
+FAIL: test_leak_wrap_mid_key_crlf (test_redact.RedactTests.test_leak_wrap_mid_key_crlf)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/richardfeng/VSCode/assessments/intelligent audit/takehome/tests/test_redact.py", line 71, in test
+    self.assertFalse(survived, f"key fragments survived in output:\n{output}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ['FAKE', 'AKE7', 'KE7x', 'E7xK', '7xKp', 'xKp2', 'Kp2M', 'p2Mz', '2Mz9', 'Mz9L', 'z9Lf', '9LfT', 'LfT4', 'fT4v', 'T4vR', '4vRn', 'vRn8', 'Rn8W', 'n8Wb', '8WbY', 'WbY3'] is not false : key fragments survived in output:
+New key: rly_FAKE7xKp2Mz9
+LfT4vRn8WbY3
+Store it.
+
+
+======================================================================
+FAIL: test_leak_wrap_mid_key_lf (test_redact.RedactTests.test_leak_wrap_mid_key_lf)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/richardfeng/VSCode/assessments/intelligent audit/takehome/tests/test_redact.py", line 71, in test
+    self.assertFalse(survived, f"key fragments survived in output:\n{output}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ['FAKE', 'AKE7', 'KE7x', 'E7xK', '7xKp', 'xKp2', 'Kp2M', 'p2Mz', '2Mz9', 'Mz9L', 'z9Lf', '9LfT', 'LfT4', 'fT4v', 'T4vR', '4vRn', 'vRn8', 'Rn8W', 'n8Wb', '8WbY', 'WbY3'] is not false : key fragments survived in output:
+New key: rly_FAKE7xKp2Mz9
+LfT4vRn8WbY3
+Store it.
+
+
+======================================================================
+FAIL: test_leak_wrap_multiple_lines (test_redact.RedactTests.test_leak_wrap_multiple_lines)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/richardfeng/VSCode/assessments/intelligent audit/takehome/tests/test_redact.py", line 71, in test
+    self.assertFalse(survived, f"key fragments survived in output:\n{output}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ['FAKE', 'AKE7', 'KE7x', 'E7xK', '7xKp', 'xKp2', 'Kp2M', 'p2Mz', '2Mz9', 'Mz9L', 'z9Lf', '9LfT', 'LfT4', 'fT4v', 'T4vR', '4vRn', 'vRn8', 'Rn8W', 'n8Wb', '8WbY', 'WbY3'] is not false : key fragments survived in output:
+rly_FAKE7xKp
+2Mz9LfT4
+vRn8WbY3
+
+
+======================================================================
+FAIL: test_leak_wrap_quote_prefix (test_redact.RedactTests.test_leak_wrap_quote_prefix)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/richardfeng/VSCode/assessments/intelligent audit/takehome/tests/test_redact.py", line 71, in test
+    self.assertFalse(survived, f"key fragments survived in output:\n{output}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ['FAKE', 'AKE7', 'KE7x', 'E7xK', '7xKp', 'xKp2', 'Kp2M', 'p2Mz', '2Mz9', 'Mz9L', 'z9Lf', '9LfT', 'LfT4', 'fT4v', 'T4vR', '4vRn', 'vRn8', 'Rn8W', 'n8Wb', '8WbY', 'WbY3'] is not false : key fragments survived in output:
+> rly_FAKE7xKp
+> 2Mz9LfT4
+> vRn8WbY3
+
+
+======================================================================
+FAIL: test_leak_wrap_with_hyphens (test_redact.RedactTests.test_leak_wrap_with_hyphens)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/richardfeng/VSCode/assessments/intelligent audit/takehome/tests/test_redact.py", line 71, in test
+    self.assertFalse(survived, f"key fragments survived in output:\n{output}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ['FAKE', 'AKE7', 'KE7x', 'E7xK', '7xKp', 'xKp2', 'Kp2M', 'p2Mz', '2Mz9', 'Mz9L', 'z9Lf', '9LfT', 'LfT4', 'fT4v', 'T4vR', '4vRn', 'vRn8', 'Rn8W', 'n8Wb', '8WbY', 'WbY3'] is not false : key fragments survived in output:
+rly_FAKE-7xKp-2Mz9-
+LfT4-vRn8-WbY3
+
+
+======================================================================
+FAIL: test_leak_zero_width_space (test_redact.RedactTests.test_leak_zero_width_space)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/richardfeng/VSCode/assessments/intelligent audit/takehome/tests/test_redact.py", line 71, in test
+    self.assertFalse(survived, f"key fragments survived in output:\n{output}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ['FAKE', 'AKE7', 'KE7x', 'E7xK', '7xKp', 'xKp2', 'Kp2M', 'p2Mz', '2Mz9', 'Mz9L', 'z9Lf', '9LfT', 'LfT4', 'fT4v', 'T4vR', '4vRn', 'vRn8', 'Rn8W', 'n8Wb', '8WbY', 'WbY3'] is not false : key fragments survived in output:
+New key: rly_FAKE7xKp2Mz9​LfT4vRn8WbY3
+
+
+======================================================================
+FAIL: test_safe_words_ending_in_rly (test_redact.RedactTests.test_safe_words_ending_in_rly)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/richardfeng/VSCode/assessments/intelligent audit/takehome/tests/test_redact.py", line 78, in test
+    self.assertEqual(redact(text), text)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'The hou[REDACTED]etric and\nquarte[REDACTED]mary[26 chars]y.\n' != 'The hourly_BillingSyncRetryCounterMetric and\nqu[62 chars]y.\n'
+- The hou[REDACTED]etric and
+- quarte[REDACTED]maryTotals tables refresh early.
++ The hourly_BillingSyncRetryCounterMetric and
++ quarterly_RevenueReconciliationSummaryTotals tables refresh early.
+
+
+----------------------------------------------------------------------
+Ran 41 tests in 0.007s
+
+FAILED (failures=24)

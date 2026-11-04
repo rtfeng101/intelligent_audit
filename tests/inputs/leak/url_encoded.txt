@@ -1,0 +1,1 @@
+GET /v1/keys/lookup?service=billing-sync&key=rly%5FFAKE7xKp2Mz9LfT4vRn8WbY3 HTTP/1.1
