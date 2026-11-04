@@ -1,0 +1,10 @@
+Rotated the key for billing-sync.
+
+Request:
+POST https://relay.example.internal/v1/keys/rotate
+Authorization: Bearer rly_FAKE7xKp2Mz9LfT4vRn8WbY3
+{"service":"billing-sync"}
+
+Response:
+200 OK
+{"service":"billing-sync","new_key":"rly_FAKE-9qWd-4Ns6-GhJ1-tBe5-UoZ8"}

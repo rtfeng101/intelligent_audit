@@ -1,0 +1,3 @@
+rly_config is set in the deploy file and reloaded every morning by the agent
+rly_config
+is reloaded when the gateway restarts

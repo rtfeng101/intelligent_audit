@@ -1,0 +1,2 @@
+The hourly_BillingSyncRetryCounterMetric and
+quarterly_RevenueReconciliationSummaryTotals tables refresh early.

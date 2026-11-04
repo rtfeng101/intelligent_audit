@@ -1,0 +1,1 @@
+curl -s -H "Authorization: Bearer rly_FAKE7xKp2Mz9LfT4vRn8WbY3" https://relay.example.internal/v1/keys/rotate -d '{"service":"billing-sync"}'

@@ -1,0 +1,1 @@
+curl -s -H "Authorization: Bearer $RELAY_KEY" https://relay.example.internal/v1/keys/rotate -d '{"service":"<name>"}'

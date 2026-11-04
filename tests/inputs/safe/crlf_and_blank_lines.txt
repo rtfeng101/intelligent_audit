@@ -1,0 +1,6 @@
+First line
+
+
+    indented line		with tabs
+
+Last line, no newline at end

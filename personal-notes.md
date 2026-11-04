@@ -16,3 +16,7 @@
 - Step 1 sends $RELAY_KEY as the Bearer token for the rotate call
     - Key being rotated is also what authorizes rotation
     - Flag as design decision
+
+## Original redact.py
+- Without testing, I can tell it fails many tests since the output of the skill may be not enforced and key is recorded in plaintext in the logs
+    - Fails hyphens, spaces in between, code markdown, etc.

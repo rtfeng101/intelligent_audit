@@ -1,0 +1,2 @@
+The Bearer token goes in the header, using the Bearer scheme.
+Authorization: Bearer <token>
