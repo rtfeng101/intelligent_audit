@@ -1,3 +1,6 @@
+# Video Recording:
+https://www.loom.com/share/1812e7a849594047a3fd4f706e84ae8d
+
 # The Rotation Skill: take-home submission
 
 **Decision:** block `relay-rotate-key` v0.3, and ship v0.4 to a pilot only once the hook and helper are in place. The reasoning is in [memo.md](memo.md). v0.4 is not ready to run on a real service yet; the memo lists what must close first.
