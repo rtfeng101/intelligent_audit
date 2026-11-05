@@ -27,3 +27,7 @@
 - Have to decide on if spaces should be reported
     - Requires key to look random
     - ??
+
+## Skill and helper
+- We have to remove all the sensitive information out of the agent's instruction and into a helper that the agent can't vary
+- Skill should be an interface that talks to the user while the helper makes the calls

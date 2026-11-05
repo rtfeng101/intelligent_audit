@@ -12,6 +12,7 @@
 2:31pm: Begin writing improved redact
 - Use Claude Code to get started
 2:55pm: Decided against using a randomness checker
+- Changed mind on trying to create a perfect redactor since time constraints
 - Accept that over-redaction is better than leaking a key
 - Also I don't want to use something like entropy calculation for a mock
 3:14pm: Added space into the pattern and added split line detection
@@ -19,4 +20,8 @@
     - Still trading off over redaction over leaking key
 - Improved `redact.py` looks a bit messy but good enough spot to move on
 3:21pm: Write 6 review items for deliverable
-3:41pm: 
+3:41pm: Write the correct skill and helper
+- Use Claude to help create an example
+4:01pm: Use Claude to draft a relay_rotate.py helper for the SKILL to use
+- Running low on time so use it as a demo
+4:31pm: Decision memo
