@@ -25,3 +25,6 @@
 4:01pm: Use Claude to draft a relay_rotate.py helper for the SKILL to use
 - Running low on time so use it as a demo
 4:31pm: Decision memo
+4:42pm: Use Claude to generate a rollout plan according to the memo as well as unverified list based on the decision log. 
+- Time constraints, using AI to help speed up the process
+4:48pm: Review deliverables and plan screen recording
