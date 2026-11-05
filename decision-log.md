@@ -1,4 +1,6 @@
 # Decision log
+
+11:4
 1:35pm: Set up repo with files as is
 1:44pm: Read incident package for challenges
 - Plan to treat as a fact or assumption:
@@ -29,3 +31,13 @@
 - Time constraints, using AI to help speed up the process
 4:48pm: Review deliverables and plan screen recording
 4:51pm: AI generated README
+
+
+11/5:
+11:04am: Started with reviewing and using Claude to demo the pivot
+- Had to remove the key ID and fingerprint that the skill generated
+- Now the agent has no information of the key
+    - Has only succeeded to rotate and failed to rotate states
+    - Need to remove and enforce ticket writing down the line
+- Moving audit trail into the helper since the key lives there anyways
+- Minorly tested skill and tested helper

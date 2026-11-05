@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""Plan and perform a Relay key rotation without showing key values to the caller.
+"""Plan and perform a Relay key rotation. The caller learns only whether it worked.
 
 Usage:
   relay_rotate.py plan --service NAME
-  relay_rotate.py rotate --service NAME --confirm TOKEN
+  relay_rotate.py rotate --service NAME --ticket TICKET --confirm TOKEN
 
-Exit codes: 0 done, 1 nothing rotated, 2 bad usage, 3 UNKNOWN STATE, 4 rotated but not stored.
+Prints {"success": "succeeded"} and exits 0, or {"success": "failed"} and exits 1. plan's success
+also carries confirm_token. Every detail, including key IDs and fingerprints, goes to AUDIT_LOG.
+Nothing here writes to a ticket: look up the log by ticket ID.
 
 Assumed, because the packet only documents POST /v1/keys/rotate and "contains the new key":
   GET /v1/keys?service=NAME returns {"keys": [{"id": ..., "created_at": ...}]}
@@ -29,14 +31,26 @@ CREDENTIAL_ENV = "RELAY_KEY"
 TIMEOUT_SECONDS = 30
 REFUSED_RETRIES = 2
 REFUSED_WAIT_SECONDS = 5
+AUDIT_LOG = "/var/log/relay-rotate/audit.log"
 SERVICE_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,62}$")
+TICKET_RE = re.compile(r"[A-Z][A-Z0-9]{1,30}-[0-9]{1,10}")
 PRINTABLE_RE = re.compile(r"[A-Za-z0-9_.:+-]{1,64}")
 DEFINITE_REJECTIONS = (400, 401, 403, 404, 422)
 AUDIT_TEMPLATE = (
-    "relay-rotate at={at} service={service} outcome={outcome} old_key_ids={old_key_ids} "
-    "new_key_id={new_key_id} new_key_fingerprint={new_key_fingerprint} reason={reason}"
+    "relay-rotate at={at} ticket={ticket} service={service} outcome={outcome} old_key_ids={old_key_ids} "
+    "new_key_id={new_key_id} new_key_fingerprint={new_key_fingerprint} new_since_call={new_since_call} "
+    "reason={reason}"
 )
-AUDIT_FIELDS = ("service", "outcome", "old_key_ids", "new_key_id", "new_key_fingerprint", "reason")
+AUDIT_FIELDS = (
+    "ticket",
+    "service",
+    "outcome",
+    "old_key_ids",
+    "new_key_id",
+    "new_key_fingerprint",
+    "new_since_call",
+    "reason",
+)
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -56,9 +70,16 @@ def store_secret(service, value):
     raise NotImplementedError("secret store not connected")
 
 
-def stop(code, *lines):
-    print("\n".join(lines))
-    sys.exit(code)
+def stop(succeeded, **extra):
+    # Fixed words only. The agent can repeat anything it is shown, so detail goes to the audit log.
+    print(json.dumps({"success": "succeeded" if succeeded else "failed", **extra}))
+    sys.exit(0 if succeeded else 1)
+
+
+class QuietParser(argparse.ArgumentParser):
+    def error(self, message):
+        # argparse would quote the bad arguments, and those could be a key the agent was handed.
+        stop(False)
 
 
 def safe(value):
@@ -87,6 +108,25 @@ def audit_summary(**fields):
         values[name] = ",".join(map(safe, value)) if isinstance(value, list) else safe(value)
     at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     return "AUDIT: " + AUDIT_TEMPLATE.format(at=at, **values)
+
+
+def write_audit(**fields):
+    # shortcut: a local file only protects the log if the helper runs as relay-rotator, and root can
+    # still edit it. Move to an append-only store the agent can't read before the pilot.
+    with open(AUDIT_LOG, "a", opener=lambda path, flags: os.open(path, flags, 0o600)) as log:
+        log.write(audit_summary(**fields) + "\n")
+        log.flush()
+        os.fsync(log.fileno())  # A record still in a buffer isn't an audit trail.
+
+
+def finish(succeeded, **fields):
+    """A rotation only counts as done if its outcome is on record."""
+    try:
+        write_audit(**fields)
+    except Exception:
+        # The intent record stays. An intent with no outcome means: check Relay, a key may exist.
+        succeeded = False
+    stop(succeeded)
 
 
 def was_refused(error):
@@ -122,94 +162,80 @@ def call(credential, url, data=None):
 
 
 def list_keys(credential, service):
-    keys = call(credential, f"{KEYS_URL}?service={service}")["keys"]
-    return [(safe(key["id"]), safe(key.get("created_at", "unknown"))) for key in keys]
+    return [safe(key["id"]) for key in call(credential, f"{KEYS_URL}?service={service}")["keys"]]
 
 
 def plan(credential, service):
-    keys = list_keys(credential, service)
-    lines = [f"PLAN: service={service}"]
-    lines += [f"CURRENT KEY: id={key_id} created_at={created}" for key_id, created in keys]
-    lines.append(f"CONFIRM TOKEN: {confirm_token(credential, service, [k for k, _ in keys])}")
-    stop(0, *lines)
+    stop(True, confirm_token=confirm_token(credential, service, list_keys(credential, service)))
 
 
-def unknown_state(credential, service, old_ids, reason):
-    lines = [f"UNKNOWN STATE: service={service} reason={reason}. Do not retry: Relay may have created a key."]
+def unknown_state(credential, audit, reason):
     try:
-        for key_id, created in list_keys(credential, service):
-            is_new = "yes" if key_id not in old_ids else "no"
-            lines.append(f"CURRENT KEY: id={key_id} created_at={created} new_since_call={is_new}")
+        current = list_keys(credential, audit["service"])
+        new_ids = [key_id for key_id in current if key_id not in audit["old_key_ids"]] or "none"
     except Exception as error:
-        lines.append(f"CURRENT KEYS UNAVAILABLE: reason={reason_for(error)}")
-    lines.append(audit_summary(service=service, outcome="UNKNOWN_STATE", old_key_ids=old_ids, reason=reason))
-    stop(3, *lines)
+        new_ids = f"unavailable_{reason_for(error)}"
+    finish(False, outcome="UNKNOWN_STATE", new_since_call=new_ids, reason=reason, **audit)
 
 
-def rotate(credential, service, token):
-    old_ids = [key_id for key_id, _ in list_keys(credential, service)]
+def rotate(credential, service, ticket, token):
+    old_ids = list_keys(credential, service)
+    audit = {"ticket": ticket, "service": service, "old_key_ids": old_ids}
     if not hmac.compare_digest(token, confirm_token(credential, service, old_ids)):
-        stop(1, f"NOT ROTATED: service={service} reason=confirm_token_invalid. Run plan and confirm again.")
+        finish(False, outcome="NOT_ROTATED", reason="confirm_token_invalid", **audit)
+
+    # No trail, no rotation. Relay has no documented undo, so this has to come before the call.
+    write_audit(outcome="INTENT", **audit)
 
     try:
         response = call(credential, f"{KEYS_URL}/rotate", json.dumps({"service": service}).encode())
         new_key = response["key"]
         if not isinstance(new_key, str) or not new_key:
             raise ValueError("no usable key in response")
-        new_id, new_fingerprint = safe(response.get("id", "unknown")), fingerprint(new_key)
+        audit.update(new_key_id=safe(response.get("id", "unknown")), new_key_fingerprint=fingerprint(new_key))
     except Exception as error:
         reason = reason_for(error)
         rejected = isinstance(error, urllib.error.HTTPError) and error.code in DEFINITE_REJECTIONS
         if not rejected and not was_refused(error):
-            unknown_state(credential, service, old_ids, reason)
-        stop(
-            1,
-            f"NOT ROTATED: service={service} reason={reason}",
-            audit_summary(service=service, outcome="NOT_ROTATED", old_key_ids=old_ids, reason=reason),
-        )
+            unknown_state(credential, audit, reason)
+        finish(False, outcome="NOT_ROTATED", reason=reason, **audit)
 
-    audit = {
-        "service": service,
-        "old_key_ids": old_ids,
-        "new_key_id": new_id,
-        "new_key_fingerprint": new_fingerprint,
-    }
-    identity = f"service={service} new_key_id={new_id} fingerprint={new_fingerprint}"
+    # The store comes first: a failed audit write must not cost us the only copy of the new key.
     try:
         store_secret(service, new_key)
     except Exception as error:
-        reason = type(error).__name__
-        stop(
-            4,
-            f"ROTATED NOT STORED: {identity} reason={reason}. Escalate now: the new key was not saved.",
-            audit_summary(outcome="ROTATED_NOT_STORED", reason=reason, **audit),
-        )
-    stop(0, f"ROTATED: {identity}", audit_summary(outcome="ROTATED", **audit))
+        finish(False, outcome="ROTATED_NOT_STORED", reason=type(error).__name__, **audit)
+    finish(True, outcome="ROTATED", **audit)
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Plan or perform a Relay key rotation.")
+    parser = QuietParser(description="Plan or perform a Relay key rotation.")
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("plan").add_argument("--service", required=True)
     rotate_parser = commands.add_parser("rotate")
     rotate_parser.add_argument("--service", required=True)
+    rotate_parser.add_argument("--ticket", required=True)
     rotate_parser.add_argument("--confirm", required=True)
     args = parser.parse_args()
 
-    # fullmatch, because $ alone would also accept a trailing newline. The name isn't echoed.
+    # Plan failures are recorded too, because the agent no longer sees the reason.
+    context = {"ticket": getattr(args, "ticket", "none"), "service": args.service, "outcome": "NOT_ROTATED"}
+    # fullmatch, because $ alone would also accept a trailing newline.
     if not SERVICE_RE.fullmatch(args.service):
-        stop(1, "NOT ROTATED: reason=invalid_service_name")
+        finish(False, reason="invalid_service_name", **context)
+    if args.command == "rotate" and not TICKET_RE.fullmatch(args.ticket):
+        finish(False, reason="invalid_ticket", **context)
     try:
         # The store wins, so setting RELAY_KEY can't override it once one is connected.
         credential = fetch_secret(args.service) or os.environ.get(CREDENTIAL_ENV)
         if not credential:
-            stop(1, f"NOT ROTATED: service={args.service} reason=no_credential")
+            finish(False, reason="no_credential", **context)
         if args.command == "plan":
             plan(credential, args.service)
-        rotate(credential, args.service, args.confirm)
+        rotate(credential, args.service, args.ticket, args.confirm)
     except Exception as error:
-        # Only list_keys and the token check can raise here, and both run before the rotate call.
-        stop(1, f"NOT ROTATED: service={args.service} reason={reason_for(error)}")
+        # Only list_keys, the token check and the intent write can raise here: all before the rotate call.
+        finish(False, reason=reason_for(error), **context)
 
 
 if __name__ == "__main__":

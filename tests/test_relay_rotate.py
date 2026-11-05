@@ -5,6 +5,8 @@ import io
 import json
 import os
 import socket
+import stat
+import tempfile
 import threading
 import time
 import unittest
@@ -22,6 +24,9 @@ SHIPPED_STORE_SECRET = rr.store_secret
 OLD = "rly_" + "A" * 24
 NEW = "rly_" + "B" * 24
 OLD_KEY = {"id": "kid-old", "created_at": "2026-11-01T00:00:00Z"}
+TICKET = "SUP-5521"
+SUCCEEDED = {"success": "succeeded"}
+FAILED = {"success": "failed"}
 
 
 class FakeRelay(BaseHTTPRequestHandler):
@@ -93,48 +98,86 @@ class RelayRotateTest(unittest.TestCase):
         FakeRelay.keys = [OLD_KEY]
         FakeRelay.hits = []
         self.stored = {}
+        log_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(log_dir.cleanup)
+        self.log_path = Path(log_dir.name) / "audit.log"
         for patcher in (
             mock.patch.object(rr, "KEYS_URL", self.url),
             mock.patch.object(rr, "TIMEOUT_SECONDS", 0.2),
+            mock.patch.object(rr, "AUDIT_LOG", str(self.log_path)),
             mock.patch.object(rr, "store_secret", self.stored.__setitem__),
             mock.patch.dict(os.environ, {"RELAY_KEY": OLD}),
         ):
             patcher.start()
             self.addCleanup(patcher.stop)
+        self.addCleanup(self.assert_log_has_no_secrets)
+
+    def assert_log_has_no_secrets(self):
+        for secret in (OLD, NEW, "rly_", "Bearer"):
+            self.assertNotIn(secret, self.log())
+
+    def log(self):
+        return self.log_path.read_text() if self.log_path.exists() else ""
+
+    def last_record(self):
+        return self.log().splitlines()[-1]
 
     def run_cli(self, *argv):
+        """Every test goes through here, so every path is held to the output contract."""
         out = io.StringIO()
         with mock.patch("sys.argv", ["relay_rotate.py", *argv]):
             with contextlib.redirect_stdout(out), contextlib.redirect_stderr(out):
                 with self.assertRaises(SystemExit) as caught:
                     rr.main()
-        text = out.getvalue()
-        for secret in (OLD, NEW, "rly_", "Bearer"):
-            self.assertNotIn(secret, text)
-        return caught.exception.code, text
+        result = json.loads(out.getvalue())
+        self.assertEqual(result["success"], "succeeded" if caught.exception.code == 0 else "failed")
+        self.assertIn(caught.exception.code, (0, 1))
+        self.assertLessEqual(set(result), {"success", "confirm_token"})
+        for secret in (OLD, NEW, "rly_", "Bearer", "kid-", rr.fingerprint(NEW), "fingerprint"):
+            self.assertNotIn(secret, out.getvalue())
+        return caught.exception.code, result
 
     def token(self):
         return rr.confirm_token(OLD, "billing-sync", ["kid-old"])
 
+    def rotate_with(self, token):
+        return self.run_cli("rotate", "--service", "billing-sync", "--ticket", TICKET, "--confirm", token)
+
     def rotate(self):
-        return self.run_cli("rotate", "--service", "billing-sync", "--confirm", self.token())
+        return self.rotate_with(self.token())
 
     def posts(self):
         return [hit for hit in FakeRelay.hits if hit[0] == "POST"]
 
-    # Service name validation
+    # Service name and ticket validation
 
     def test_bad_service_names_are_refused_before_any_call(self):
         for bad in ("-leading", "UPPER", "a b", "a;rm -rf", "../etc", "a\n", "a?x=1", "", "a" * 64, '{"x":1}'):
             with self.subTest(bad=bad):
                 # = form, or argparse rejects "-leading" as a flag before the validator sees it.
-                code, text = self.run_cli("plan", f"--service={bad}")
-                self.assertEqual(code, 1)
-                self.assertIn("invalid_service_name", text)
+                code, result = self.run_cli("plan", f"--service={bad}")
+                self.assertEqual((code, result), (1, FAILED))
+                self.assertIn("reason=invalid_service_name", self.last_record())
         self.assertEqual(FakeRelay.hits, [])
 
     def test_longest_valid_service_name_is_accepted(self):
         self.assertEqual(self.run_cli("plan", "--service", "a" * 63)[0], 0)
+
+    def test_bad_tickets_are_refused_before_any_call(self):
+        for bad in ("sup-5521", "SUP", "SUP-", "-1", "SUP-1\n", "SUP-1 x", "SUP-1;x", OLD, "kid-old", ""):
+            with self.subTest(bad=bad):
+                code, result = self.run_cli(
+                    "rotate", "--service", "billing-sync", f"--ticket={bad}", "--confirm", self.token()
+                )
+                self.assertEqual((code, result), (1, FAILED))
+                self.assertIn("reason=invalid_ticket", self.last_record())
+        self.assertEqual(FakeRelay.hits, [])
+        self.assertEqual(len(self.log().splitlines()), 10)  # A bad value can't forge a second line.
+
+    def test_rotate_requires_a_ticket(self):
+        code, result = self.run_cli("rotate", "--service", "billing-sync", "--confirm", self.token())
+        self.assertEqual((code, result), (1, FAILED))
+        self.assertEqual(FakeRelay.hits, [])
 
     # Credential handling
 
@@ -146,13 +189,28 @@ class RelayRotateTest(unittest.TestCase):
         self.assertEqual(json.loads(self.posts()[0][3]), {"service": "billing-sync"})
 
     def test_credential_cannot_come_from_a_flag(self):
-        self.assertEqual(self.run_cli("plan", "--service", "billing-sync", "--key", "x")[0], 2)
+        self.assertEqual(self.run_cli("plan", "--service", "billing-sync", "--key", "x")[0], 1)
+        self.assertEqual(FakeRelay.hits, [])
+
+    def test_errors_do_not_echo_what_the_agent_passed(self):
+        fingerprint = rr.fingerprint(NEW)
+        for argv in (
+            ["plan", "--service", "billing-sync", "--key-id", "kid-old"],
+            ["plan", "--service", "billing-sync", "--key", OLD],
+            ["plan", f"--service={OLD}"],
+            ["plan", "--service", f"kid-old {fingerprint}"],
+            ["rotate", "--service", "billing-sync", "--ticket", "kid-old", "--confirm", fingerprint],
+            [f"kid-old-{fingerprint}"],
+        ):
+            with self.subTest(argv=argv):
+                # run_cli fails if any key, key ID or fingerprint is printed.
+                self.assertEqual(self.run_cli(*argv), (1, FAILED))
 
     def test_missing_credential_makes_no_call(self):
         with mock.patch.dict(os.environ, clear=True):
-            code, text = self.run_cli("plan", "--service", "billing-sync")
-        self.assertEqual(code, 1)
-        self.assertIn("no_credential", text)
+            code, result = self.run_cli("plan", "--service", "billing-sync")
+        self.assertEqual((code, result), (1, FAILED))
+        self.assertIn("reason=no_credential", self.last_record())
         self.assertEqual(FakeRelay.hits, [])
 
     def test_secret_store_beats_the_environment(self):
@@ -166,85 +224,86 @@ class RelayRotateTest(unittest.TestCase):
 
     # Plan and confirm
 
-    def test_plan_lists_keys_prints_token_and_changes_nothing(self):
-        code, text = self.run_cli("plan", "--service", "billing-sync")
+    def test_plan_returns_only_the_token_and_changes_nothing(self):
+        code, result = self.run_cli("plan", "--service", "billing-sync")
         self.assertEqual(code, 0)
-        self.assertIn("id=kid-old", text)
-        self.assertIn(f"CONFIRM TOKEN: {self.token()}", text)
+        self.assertEqual(result, {**SUCCEEDED, "confirm_token": self.token()})
         self.assertEqual(self.posts(), [])
+        self.assertEqual(self.log(), "")
 
     def test_force_flag_does_not_exist(self):
-        code, _ = self.run_cli("rotate", "--service", "billing-sync", "--confirm", self.token(), "--force")
-        self.assertEqual(code, 2)
+        code, _ = self.run_cli(
+            "rotate", "--service", "billing-sync", "--ticket", TICKET, "--confirm", self.token(), "--force"
+        )
+        self.assertEqual(code, 1)
         self.assertEqual(FakeRelay.hits, [])
 
     def test_rotate_requires_a_token(self):
-        self.assertEqual(self.run_cli("rotate", "--service", "billing-sync")[0], 2)
+        self.assertEqual(self.run_cli("rotate", "--service", "billing-sync", "--ticket", TICKET)[0], 1)
         self.assertEqual(FakeRelay.hits, [])
 
     def test_wrong_token_makes_no_rotate_call(self):
-        code, text = self.run_cli("rotate", "--service", "billing-sync", "--confirm", "wrong")
-        self.assertEqual(code, 1)
-        self.assertIn("confirm_token_invalid", text)
+        self.assertEqual(self.rotate_with("wrong"), (1, FAILED))
+        self.assertIn("reason=confirm_token_invalid", self.last_record())
+        self.assertNotIn("outcome=INTENT", self.log())
         self.assertEqual(self.posts(), [])
 
     def test_non_ascii_token_makes_no_rotate_call(self):
-        self.assertEqual(self.run_cli("rotate", "--service", "billing-sync", "--confirm", "é")[0], 1)
+        self.assertEqual(self.rotate_with("é")[0], 1)
         self.assertEqual(self.posts(), [])
 
     def test_token_from_another_service_is_refused(self):
         token = rr.confirm_token(OLD, "other-service", ["kid-old"])
-        self.assertEqual(self.run_cli("rotate", "--service", "billing-sync", "--confirm", token)[0], 1)
+        self.assertEqual(self.rotate_with(token)[0], 1)
         self.assertEqual(self.posts(), [])
 
     def test_token_goes_stale_when_keys_change(self):
         token = self.token()
         FakeRelay.keys = [OLD_KEY, {"id": "kid-surprise"}]
-        code, text = self.run_cli("rotate", "--service", "billing-sync", "--confirm", token)
-        self.assertEqual(code, 1)
-        self.assertIn("confirm_token_invalid", text)
+        self.assertEqual(self.rotate_with(token), (1, FAILED))
+        self.assertIn("reason=confirm_token_invalid", self.last_record())
         self.assertEqual(self.posts(), [])
 
     # Successful rotation
 
-    def test_rotate_stores_key_and_prints_only_id_and_fingerprint(self):
-        code, text = self.rotate()
-        self.assertEqual(code, 0)
+    def test_rotate_stores_key_and_records_details_only_in_the_log(self):
+        self.assertEqual(self.rotate(), (0, SUCCEEDED))
         self.assertEqual(self.stored, {"billing-sync": NEW})
-        self.assertIn(f"new_key_id=kid-new fingerprint={rr.fingerprint(NEW)}", text)
         self.assertEqual(len(self.posts()), 1)
+        self.assertIn(
+            f"new_key_id=kid-new new_key_fingerprint={rr.fingerprint(NEW)}", self.last_record()
+        )
 
     def test_missing_id_still_stores_the_key(self):
         FakeRelay.mode = "no_id"
-        code, text = self.rotate()
-        self.assertEqual(code, 0)
+        self.assertEqual(self.rotate()[0], 0)
         self.assertEqual(self.stored, {"billing-sync": NEW})
-        self.assertIn("new_key_id=unknown", text)
+        self.assertIn("new_key_id=unknown", self.last_record())
 
     def test_key_returned_as_id_is_withheld(self):
         FakeRelay.mode = "key_as_id"
-        code, text = self.rotate()
-        self.assertEqual(code, 0)
-        self.assertIn("new_key_id=WITHHELD", text)
+        self.assertEqual(self.rotate()[0], 0)
+        self.assertIn("new_key_id=WITHHELD", self.last_record())
 
     def test_key_shaped_values_in_the_key_list_are_withheld(self):
         for key_shaped in (OLD, "rly-" + "A" * 24, "rly_AAAA-AAAA-AAAA-AAAA-AAAA-AAAA", "x y"):
             with self.subTest(value=key_shaped):
                 self.assertEqual(rr.safe(key_shaped), "WITHHELD")
         FakeRelay.keys = [{"id": OLD}]
-        code, text = self.run_cli("plan", "--service", "billing-sync")
-        self.assertEqual(code, 0)
-        self.assertIn("id=WITHHELD", text)
+        token = rr.confirm_token(OLD, "billing-sync", ["WITHHELD"])
+        self.assertEqual(self.rotate_with(token)[0], 0)
+        self.assertIn("old_key_ids=WITHHELD", self.last_record())
 
     def test_short_rly_ids_are_not_withheld(self):
         self.assertEqual(rr.safe("rly_kid_123"), "rly_kid_123")
 
-    def test_store_stub_raises_and_rotate_escalates_without_printing_key(self):
+    def test_store_failure_is_failed_and_the_log_says_what_happened(self):
         with mock.patch.object(rr, "store_secret", side_effect=PermissionError(f"could not write {NEW}")):
-            code, text = self.rotate()
-        self.assertEqual(code, 4)
-        self.assertIn("ROTATED NOT STORED", text)
-        self.assertIn(f"fingerprint={rr.fingerprint(NEW)}", text)
+            self.assertEqual(self.rotate(), (1, FAILED))
+        record = self.last_record()
+        self.assertIn("outcome=ROTATED_NOT_STORED", record)
+        self.assertIn("reason=PermissionError", record)
+        self.assertIn(f"new_key_fingerprint={rr.fingerprint(NEW)}", record)
 
     def test_shipped_store_stub_refuses_rather_than_dropping_the_key(self):
         with self.assertRaises(NotImplementedError):
@@ -252,16 +311,15 @@ class RelayRotateTest(unittest.TestCase):
 
     # Failed rotation
 
-    def test_ambiguous_failures_call_once_and_report_unknown_state(self):
+    def test_ambiguous_failures_call_once_and_record_unknown_state(self):
         for mode in ("timeout", "500", "garbage", "no_key", "redirect"):
             with self.subTest(mode=mode):
                 FakeRelay.mode = mode
                 FakeRelay.keys = [OLD_KEY]
                 FakeRelay.hits = []
-                code, text = self.rotate()
-                self.assertEqual(code, 3)
-                self.assertIn("UNKNOWN STATE", text)
-                self.assertIn("id=kid-old", text)
+                self.assertEqual(self.rotate(), (1, FAILED))
+                self.assertIn("outcome=UNKNOWN_STATE", self.last_record())
+                self.assertIn("old_key_ids=kid-old", self.last_record())
                 self.assertEqual(len(self.posts()), 1)
                 self.assertEqual(self.stored, {})
 
@@ -270,26 +328,24 @@ class RelayRotateTest(unittest.TestCase):
         self.rotate()
         self.assertFalse([hit for hit in FakeRelay.hits if hit[1] == "/stolen"])
 
-    def test_unknown_state_flags_the_key_a_timed_out_call_created(self):
+    def test_unknown_state_records_the_key_a_timed_out_call_created(self):
         FakeRelay.mode = "timeout"
-        _, text = self.rotate()
-        self.assertIn("id=kid-old created_at=2026-11-01T00:00:00Z new_since_call=no", text)
-        self.assertIn("id=kid-orphan created_at=2026-11-04T14:02:00Z new_since_call=yes", text)
+        self.rotate()
+        self.assertIn("new_since_call=kid-orphan", self.last_record())
 
     def test_unknown_state_survives_listing_failure(self):
         FakeRelay.mode = "500"
         FakeRelay.list_mode = "fail_after_post"
-        code, text = self.rotate()
-        self.assertEqual(code, 3)
-        self.assertIn("UNKNOWN STATE", text)
-        self.assertIn("CURRENT KEYS UNAVAILABLE: reason=HTTP_401", text)
+        self.assertEqual(self.rotate(), (1, FAILED))
+        record = self.last_record()
+        self.assertIn("outcome=UNKNOWN_STATE", record)
+        self.assertIn("new_since_call=unavailable_HTTP_401", record)
 
     def test_definite_rejection_is_not_unknown_state(self):
         FakeRelay.mode = "401"
-        code, text = self.rotate()
-        self.assertEqual(code, 1)
-        self.assertIn("NOT ROTATED", text)
-        self.assertNotIn("UNKNOWN STATE", text)
+        self.assertEqual(self.rotate(), (1, FAILED))
+        self.assertIn("outcome=NOT_ROTATED", self.last_record())
+        self.assertNotIn("UNKNOWN_STATE", self.log())
         self.assertEqual(len(self.posts()), 1)
 
     # Retry only on connection refused
@@ -337,20 +393,19 @@ class RelayRotateTest(unittest.TestCase):
             port = probe.getsockname()[1]
         with mock.patch.object(rr, "KEYS_URL", f"http://127.0.0.1:{port}/v1/keys"):
             with mock.patch.object(rr.time, "sleep") as sleep:
-                code, text = self.run_cli("plan", "--service", "billing-sync")
-        self.assertEqual(code, 1)
-        self.assertIn("reason=connection_refused", text)
+                code, result = self.run_cli("plan", "--service", "billing-sync")
+        self.assertEqual((code, result), (1, FAILED))
+        self.assertIn("reason=connection_refused", self.last_record())
         self.assertEqual(sleep.call_count, rr.REFUSED_RETRIES)
 
     def test_refused_rotate_call_is_not_rotated_rather_than_unknown(self):
         refused = urllib.error.URLError(ConnectionRefusedError())
         with mock.patch.object(rr, "call", side_effect=[{"keys": [OLD_KEY]}, refused]):
-            code, text = self.rotate()
-        self.assertEqual(code, 1)
-        self.assertIn("NOT ROTATED", text)
-        self.assertNotIn("UNKNOWN STATE", text)
+            self.assertEqual(self.rotate(), (1, FAILED))
+        self.assertIn("outcome=NOT_ROTATED", self.last_record())
+        self.assertNotIn("UNKNOWN_STATE", self.log())
 
-    # Audit summary
+    # Audit trail
 
     def test_audit_drops_fields_outside_the_allowlist(self):
         summary = rr.audit_summary(service="s", outcome="ROTATED", request=OLD, response=NEW, key=NEW)
@@ -363,13 +418,59 @@ class RelayRotateTest(unittest.TestCase):
         self.assertIn("service=WITHHELD", summary)
         self.assertIn("old_key_ids=WITHHELD,kid-1", summary)
 
-    def test_every_rotate_outcome_after_the_call_prints_an_audit_line(self):
+    def test_every_rotate_after_the_token_check_leaves_intent_then_outcome_under_the_ticket(self):
         for mode, outcome in (("ok", "ROTATED"), ("500", "UNKNOWN_STATE"), ("401", "NOT_ROTATED")):
             with self.subTest(mode=mode):
                 FakeRelay.mode = mode
-                _, text = self.rotate()
-                self.assertIn("AUDIT: relay-rotate", text)
-                self.assertIn(f"outcome={outcome}", text)
+                self.log_path.unlink(missing_ok=True)
+                self.rotate()
+                intent, result = self.log().splitlines()
+                self.assertIn("outcome=INTENT", intent)
+                self.assertIn(f"outcome={outcome}", result)
+                for record in (intent, result):
+                    self.assertIn(f"ticket={TICKET} service=billing-sync", record)
+
+    def test_intent_is_on_disk_before_the_rotate_call(self):
+        seen = []
+        real_call = rr.call
+
+        def spy(credential, url, data=None):
+            if data is not None:
+                seen.append(self.log())
+            return real_call(credential, url, data)
+
+        with mock.patch.object(rr, "call", spy):
+            self.rotate()
+        self.assertEqual(len(seen), 1)
+        self.assertIn("outcome=INTENT", seen[0])
+
+    def test_no_rotation_if_the_intent_cannot_be_written(self):
+        with mock.patch.object(rr, "AUDIT_LOG", str(self.log_path.parent / "missing" / "audit.log")):
+            self.assertEqual(self.rotate(), (1, FAILED))
+        self.assertEqual(self.posts(), [])
+        self.assertEqual(self.stored, {})
+
+    def test_rotation_does_not_count_as_done_if_the_outcome_cannot_be_written(self):
+        real_write = rr.write_audit
+
+        def fail_on_outcome(**fields):
+            if fields["outcome"] != "INTENT":
+                raise OSError("disk full")
+            real_write(**fields)
+
+        with mock.patch.object(rr, "write_audit", fail_on_outcome):
+            self.assertEqual(self.rotate(), (1, FAILED))
+        self.assertEqual(len(self.posts()), 1)
+        self.assertEqual(self.stored, {"billing-sync": NEW})  # The only copy of the key survives.
+        self.assertEqual(len(self.log().splitlines()), 1)  # The intent is the trail on-call follows.
+        self.assertIn("outcome=INTENT", self.last_record())
+
+    def test_log_appends_and_only_its_owner_can_read_it(self):
+        self.rotate()
+        first = self.log()
+        self.rotate_with("wrong")
+        self.assertTrue(self.log().startswith(first))
+        self.assertEqual(stat.S_IMODE(self.log_path.stat().st_mode), 0o600)
 
 
 if __name__ == "__main__":

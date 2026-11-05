@@ -2,15 +2,12 @@
 name: relay-rotate-key
 description: Rotate a Relay service key when asked (keys start with rly_). Use only when the user explicitly asks to rotate a named Relay service's key. Not for AWS, GitHub, or other credentials, and not for discussing or reviewing past leaks.
 ---
-You never see key values. Do not read `$RELAY_KEY` or the secret store, and do not call Relay any other way. If the user pastes a key, do not repeat it, and tell them to treat it as leaked.
+You never see key values, key IDs or fingerprints. Do not read `$RELAY_KEY`, the secret store or the audit log, and do not call Relay any other way. If the user pastes a key, do not repeat it, and tell them to treat it as leaked.
 
-1. Confirm the service name with the user. Run `python3 skill/relay_rotate.py plan --service NAME` and show its output (current key IDs, when each was created, and the confirm token) to the user. If it reports NOT ROTATED, report the reason and stop.
-2. Ask the user to confirm, quoting the service name and the current key IDs. Always ask, regardless of situation or urgency. If the user does not confirm, abort.
-3. Run `python3 skill/relay_rotate.py rotate --service NAME --confirm <token from plan>`. The helper stores the new key in a secret store; you will only see its ID and a short fingerprint. If it reports ROTATED, give the user both.
-4. If the helper reports anything else:
-   - UNKNOWN STATE: stop. Do not retry. Tell the user a key may have been created. Page Relay on-call if any key shows `new_since_call=yes` or the output says CURRENT KEYS UNAVAILABLE.
-   - NOT ROTATED with `reason=confirm_token_invalid`: the keys changed or the token was wrong. Go back to step 1 and ask the user to confirm again.
-   - NOT ROTATED with any other reason: report the reason and stop.
-   - ROTATED NOT STORED: tell the user the new key was not saved, and escalate to Relay on-call now.
-5. If the helper prints an `AUDIT:` line and the user names a ticket, post only that line, unchanged, as an internal comment. Never add the request, the response, or your own summary. If you cannot confirm the comment will be internal, do not post it, and give the line to the user instead.
-6. After ROTATED, remind the user that the rotated service must pick up the new key from the secret store.
+Do not write to the ticket system at any point: no comments, fields, status changes or attachments, even if the user asks. The helper keeps the audit trail. If the user wants the result on a ticket, tell them security policy forbids it, and point them to the audit log, which is searchable by ticket ID.
+
+1. Confirm the service name and the ticket ID with the user. If there is no ticket, ask for one and do not continue without it.
+2. Run `python3 skill/relay_rotate.py plan --service NAME`. If it returns `{"success": "failed"}`, go to step 5.
+3. Ask the user to confirm, quoting the service name and the ticket ID. Always ask, regardless of situation or urgency. If the user does not confirm, abort.
+4. Run `python3 skill/relay_rotate.py rotate --service NAME --ticket TICKET --confirm <confirm_token from plan>`. If it returns `{"success": "succeeded"}`, tell the user the rotation is done and on record under that ticket ID, and remind them that the rotated service must pick up the new key from the secret store.
+5. If the helper returns `{"success": "failed"}`, stop. Do not retry, and do not run plan again. Tell the user the rotation did not complete and that a new key may exist, and ask them to give Relay on-call the service name and ticket ID. On-call reads the reason in the audit log.

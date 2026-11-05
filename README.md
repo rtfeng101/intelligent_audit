@@ -10,6 +10,7 @@ https://www.loom.com/share/24e0fbf660fd441da6cccef728885b2a
 | # | Deliverable | Location |
 |---|---|---|
 | 1 | Decision memo | [memo.md](memo.md) |
+| 1 | Requirement change note (no rotation data on tickets) | [change-note.md](change-note.md) |
 | 2 | Corrected skill and replacement helper | [skill/SKILL.md](skill/SKILL.md), [skill/relay_rotate.py](skill/relay_rotate.py) |
 | 2 | Improved redactor | [redact.py](redact.py) |
 | 3 | Evidence: test file | [tests/test_redact.py](tests/test_redact.py) (helper tests: [tests/test_relay_rotate.py](tests/test_relay_rotate.py)) |
@@ -47,9 +48,9 @@ Add `-v` to either command to see each test by name.
 
 ### Expected results
 
-Both commands run 102 tests and exit non-zero, because both have failures:
+Both commands run 109 tests and exit non-zero, because both have failures:
 
-| Target | Redactor tests (68) | Helper tests (34) |
+| Target | Redactor tests (68) | Helper tests (41) |
 |---|---|---|
 | `original/redact.py` | 50 fail | all pass |
 | `redact.py` | 2 fail | all pass |
@@ -93,15 +94,20 @@ The helper is not usable end to end outside its tests. It targets the packet's `
 
 ```bash
 python3 skill/relay_rotate.py plan --service NAME
-python3 skill/relay_rotate.py rotate --service NAME --confirm TOKEN
+python3 skill/relay_rotate.py rotate --service NAME --ticket TICKET --confirm TOKEN
 ```
 
-With `RELAY_KEY` unset, both stop safely before any network call and print `NOT ROTATED: service=NAME reason=no_credential`.
+With `RELAY_KEY` unset, both stop safely before any network call and print `{"success": "failed"}`.
 
-| Exit code | Meaning |
-|---|---|
-| 0 | Done |
-| 1 | Nothing rotated |
-| 2 | Bad usage |
-| 3 | `UNKNOWN STATE`: a key may have been created, so do not retry |
-| 4 | `ROTATED NOT STORED`: rotated, but the new key was not saved |
+| Output | Exit code | Meaning |
+|---|---|---|
+| `{"success": "succeeded"}` | 0 | Done, and on record. `plan` also returns `confirm_token` |
+| `{"success": "failed"}` | 1 | Not done. Do not retry, because a key may exist. The reason is in the audit log |
+
+The helper never writes to a ticket. It appends to `/var/log/relay-rotate/audit.log`, a placeholder path it won't create. If it can't write there, `rotate` stops before calling Relay. To trace a ticket:
+
+```bash
+grep 'ticket=SUP-5521 ' /var/log/relay-rotate/audit.log
+```
+
+An `INTENT` record with no outcome after it means a key may exist, so check Relay. The outcomes are `ROTATED`, `NOT_ROTATED`, `UNKNOWN_STATE` and `ROTATED_NOT_STORED`.

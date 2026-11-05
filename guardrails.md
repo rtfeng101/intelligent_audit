@@ -16,8 +16,9 @@ The skill therefore holds the workflow and contains no secrets. The helper holds
 - The credential used to call Relay
 - The new key, or any other value in the secret store
 - Raw Relay requests and responses
+- Key IDs, fingerprints and the audit log (changed 11/5, see `change-note.md`: the agent was allowed to see the first two)
 
-The agent may see service names, key IDs, creation times, a 12-character fingerprint, the confirm token and the `AUDIT:` line.
+The agent may see service names, ticket IDs, the confirm token and `succeeded` or `failed`.
 
 ## Enforced outside the skill
 
@@ -28,11 +29,13 @@ The agent may see service names, key IDs, creation times, a 12-character fingerp
 | Change the helper | The deployed copy is owned by root and not writable by the agent. | Not built |
 | Run anything else as the rotator | A sudoers rule allows only the helper's exact path, and `sudo` resets the environment. Set `timestamp_timeout=0`, or a cached `sudo` session gives the agent root. | Not built |
 | Call Relay directly | The sandbox has no network route to Relay. Ideally Relay also accepts rotation only from the rotator identity. | Not built. Relay support is unknown. |
-| See a key in helper output | The helper prints only fields it builds and withholds key-shaped values. | **Built and tested** |
+| See a key, key ID or fingerprint in helper output | The helper prints only fixed JSON and never echoes its arguments, including on errors. | **Built and tested** |
+| Rotate without an audit trail | The helper records an intent before the Relay call and stops if it can't. If the outcome can't be recorded, it returns `failed`. | **Built and tested** |
+| Read or edit the audit log | Pilot: the log is owned by `relay-rotator` with mode 600. Target: an append-only store off the host. | Not built. The helper creates the file with mode 600, which stops nobody until it runs as a separate user. |
 | Force a rotation or retry an ambiguous failure | There is no `--force`. The helper makes one attempt, and retries only when the connection is refused. | **Built and tested** |
 | Rotate from a stale plan | The confirm token is tied to the service and its current keys. | **Built and tested** |
 | Rotate without a human approving | Pilot: an `ask` rule and a `PreToolUse` hook on `rotate`. Target: the service requires approval outside the agent session. | Not built |
-| Post anything but the audit line | Target: the helper posts the audit line and the agent has no ticket write access. Pilot: a hook on the ticket tool allows only an internal comment containing an unchanged `AUDIT:` line. | Not built. The packet doesn't say how the agent posts. |
+| Write to the ticket system | Target: the agent has no ticket write access. Pilot: a hook denies ticket write tools. The helper has no ticket code. This replaces my earlier design, where the helper or the agent posted an `AUDIT:` line, which the 11/5 rule forbids. | Not built. The packet doesn't say how the agent reaches tickets. |
 | Turn these controls off | Managed settings, which user and project settings cannot override. | Not built |
 
 **Sketch of Claude Code managed settings (not run):**
@@ -78,7 +81,7 @@ Cursor's sandbox and allowlist are therefore not relied on here.
 
 ### Detection, not prevention
 
-Run `redact.py` over tool output and outgoing ticket comments, and treat any match as an incident. It cannot be a boundary: it still fails the URL-encoded and base64 tests (`evidence/improved-results.txt`), and a filter that ran is not proof that a comment is clean.
+Run `redact.py` over tool output, the audit log and ticket comments, and treat any match as an incident. It cannot be a boundary: it still fails the URL-encoded and base64 tests (`evidence/improved-results.txt`), and a filter that ran is not proof that a comment is clean.
 
 ## Stays advisory, in the skill
 
@@ -87,7 +90,7 @@ These depend on judgement or are not worth enforcing:
 - When to use the skill, and checking the service name with the user
 - Always asking for confirmation. The instruction shapes the conversation, and the approval control above enforces it.
 - Not repeating a key the user pastes
-- Paging on-call after `UNKNOWN STATE` or `ROTATED NOT STORED`
+- Not retrying after `failed`, and sending the user to on-call with the ticket ID. The helper does not refuse a second rotation while an intent has no outcome.
 - Reminding the user that the service must pick up the new key
 - "Do not read `$RELAY_KEY`". This tells the agent what to expect, and should be unnecessary once the controls above exist.
 
@@ -96,10 +99,13 @@ These depend on judgement or are not worth enforcing:
 1. **An administrator on the same machine.** Local admins can read a local store or edit managed settings, and an agent running with cached `sudo` can too. Only the service-based target closes this.
 2. **A person approving the wrong thing.** Approval fatigue, "it's urgent" pressure, or instructions planted in a ticket can all lead to a real approval of a harmful rotation. Rotating a healthy service can still cause an outage, even with no secret exposed.
 3. **Keys that are already outside the store.** A key pasted into chat is already in the transcript. Keys in `.env` files, shell history or a service's own config stay readable unless they are also denied.
-4. **Key formats the filters don't recognise.** The helper withholds values that look like `rly_` keys, but a bare 24-character key returned in an ID field would still print. Encoded forms get past `redact.py`.
-5. **Orphaned keys.** A timed-out call may finish after the helper lists keys. If the key being rotated is also the credential, listing can fail with a 401. The helper escalates, but it cannot prove what happened.
+4. **Key formats the filters don't recognise.** The helper withholds values that look like `rly_` keys, but a bare 24-character key returned in an ID field would still reach the audit log. Encoded forms get past `redact.py`.
+5. **Orphaned keys.** A timed-out call may finish after the helper lists keys. If the key being rotated is also the credential, listing can fail with a 401. The helper records `UNKNOWN_STATE`, but it cannot prove what happened.
 6. **Earlier leaks.** None of this recalls notification emails, or anything else already sent from SUP-5521.
 7. **Tools outside the setup.** Other agents or a plain terminal skip the hooks and prompts. Only the OS and service controls still apply.
+8. **A wrong ticket ID.** The helper checks the format but cannot read tickets, so a well-formed wrong ID files the record where nobody will look. The service name and time still find it.
+9. **A gap in the audit trail.** The helper reports on itself, so a rotation made outside it leaves no record. If the outcome write fails, only the intent remains. Comparing the log with Relay's key list is the only independent check.
+10. **People.** A user can still paste a result into a ticket by hand. This design only stops the agent.
 
 ## Checks before the pilot
 
@@ -110,6 +116,8 @@ Run these as the agent, on a pilot machine. None have been run yet. Every one mu
 | `printenv RELAY_KEY` | Empty |
 | `cat` the store, then the same through `python3 -c "open(...)"` | Permission denied |
 | `sudo -n cat` the store, including straight after a human used `sudo` | Refused |
+| `cat` the audit log, then edit it | Permission denied |
+| Add a comment to a test ticket | Refused |
 | Edit the deployed helper | Permission denied |
 | `curl` Relay directly | No route |
 | Run `rotate` through `sh -c`, or with the helper's path written differently | Refused by sudoers, or prompts |

@@ -5,7 +5,7 @@
 ## Now, before any rollout
 
 - Pull v0.3 from wherever the skill is shared.
-- Engineers rotate keys by hand, using a short written procedure: never retry after a timeout, and never put a key in a ticket.
+- Engineers rotate keys by hand, using a short written procedure: never retry after a timeout, and never put anything from a rotation in a ticket. Security needs to say where hand rotations are recorded, because the helper's log doesn't cover them.
 - Finish the incident: check `billing-sync` for an orphaned key, and ask Security to review the customer exposure.
 
 ## Before the pilot starts
@@ -27,16 +27,19 @@ The pilot is Claude Code only. Cursor users keep rotating by hand until its gaps
 
 ## How I'd know it's working
 
-- No key-shaped strings in ticket comments, transcripts or tool output, based on running `redact.py` over all three.
-- Every new key in Relay's key list matches an `AUDIT:` line and a key in the secret store.
+- No key-shaped strings in ticket comments, transcripts, tool output or the audit log, based on running `redact.py` over all four.
+- The agent made no ticket writes, and no ticket holds rotation data.
+- Every new key in Relay's key list matches a `ROTATED` record in the audit log and a key in the secret store.
+- Every intent record has an outcome record, or an on-call follow-up.
 - Every rotation has a recorded human approval.
-- Every `UNKNOWN STATE` or `ROTATED NOT STORED` led to a page, not a retry.
+- Every `failed` reached on-call and was not retried.
 - The rotated service works on the new key.
 
 ## What I'd watch for
 
 - Agents trying to read the store, call Relay directly or get around the hook.
-- Audit comments that are public, or that contain anything beyond the `AUDIT:` line.
+- Agents trying to read the audit log or write to a ticket, and users pasting rotation results into tickets because the ticket no longer shows them.
+- On-call being overloaded, because every `failed` now reaches them, including harmless ones like a stale token.
 - Engineers going back to raw `curl`, which suggests the skill is getting in the way.
 - The skill firing on discussions of past leaks, or not firing when asked.
 - Approvals given within seconds, which suggests people have stopped reading them.
@@ -48,7 +51,8 @@ Any one of these stops the rollout at once:
 
 - A key appears anywhere it shouldn't.
 - A rotation happens without approval.
-- A new key has no matching audit line.
+- A new key has no matching audit record.
+- The agent writes to a ticket, in any form.
 - A control from `guardrails.md` is found switched off.
 
 To roll back:
@@ -57,6 +61,6 @@ To roll back:
 2. Remove the skill from the shared location.
 3. Return to rotating by hand. **Never roll back to v0.3.**
 4. Treat any exposed key as leaked: rotate it by hand and check the key list for orphans.
-5. Rollback doesn't undo finished rotations. Those keys stay in the store and stay valid.
+5. Rollback doesn't undo finished rotations. Those keys stay in the store and stay valid. Keep the audit log: it is the only record of them.
 
 Restart from stage 1 once the cause is found and has a test.

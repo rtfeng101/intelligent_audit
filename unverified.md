@@ -33,7 +33,11 @@ Things I believed or assumed but did not check. I have no access to Relay, Jira 
 
 - **The skill's wording and triggering.** I have not run it in Claude Code or Cursor (review item 6).
 - **All of `guardrails.md` except the helper's own limits.** The managed settings sketch and the pre-pilot checks have not been run, and `sudo` may not work inside the sandbox.
-- **How the agent posts to tickets.** The packet doesn't say, so I don't know if the agent can tell an internal comment from a public one.
+- **How the agent reaches tickets.** The packet doesn't say, so I don't know whether write access can be removed for this skill alone.
+- **How far the 11/5 rule reaches.** I read "any ticket" as also covering the helper and people, and I assumed key IDs and fingerprints are allowed in a log that isn't a ticket. Security should confirm both.
+- **Who can search the audit log.** I don't know who needs access or where it should live. `/var/log/relay-rotate/audit.log` is a placeholder, and the helper fails closed if it can't write there.
+- **The ticket ID format.** The helper accepts `PROJECT-123`, based only on `SUP-5521`. It can't check that a ticket exists.
+- **That Relay has no undo.** The packet documents none, which is why I chose intent and outcome records over rollback. I can't rule one out.
 - **The tool docs.** `updatedToolOutput` came from an AI summary of the page. `sandbox.enabled` wasn't confirmed, Cursor's run-modes page returned 404, and Cursor's docs don't say whether users can override enterprise hooks.
 
 ## The rollout
