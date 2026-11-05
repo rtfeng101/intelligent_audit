@@ -1,5 +1,13 @@
-# Video Recording:
+# Video Recording 11/4 Prior to Change Req:
 https://www.loom.com/share/24e0fbf660fd441da6cccef728885b2a
+- includes the requirements in the deliverables
+    - tests
+    - one thing in memo
+
+# Video Recording 11/5 Update Video:
+https://www.loom.com/share/cb8189e9e98b4524ad46a33f81f40ace
+- change in design
+- what I would do with more time
 
 # The Rotation Skill: take-home submission
 

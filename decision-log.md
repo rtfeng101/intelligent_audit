@@ -48,3 +48,10 @@
 
 11:33am: Logging test files and reviewing documents for submission
 - Want to spend less time on the change since I'm over 3 hours already
+
+11:42am: Quick video
+- Design choices
+- Mention what I would do in the future
+    - Code review
+    - Tests on skill
+
