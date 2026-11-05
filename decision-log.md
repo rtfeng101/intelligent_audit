@@ -45,3 +45,6 @@
 11:23am: Removed ticket writing permissions from the skill
 - Avoid stringly rules via permission reduction
 - Reviewed code
+
+11:33am: Logging test files and reviewing documents for submission
+- Want to spend less time on the change since I'm over 3 hours already

@@ -16,6 +16,7 @@ https://www.loom.com/share/24e0fbf660fd441da6cccef728885b2a
 | 3 | Evidence: test file | [tests/test_redact.py](tests/test_redact.py) (helper tests: [tests/test_relay_rotate.py](tests/test_relay_rotate.py)) |
 | 3 | Evidence: inputs | [tests/inputs/](tests/inputs/) |
 | 3 | Evidence: results | [evidence/original-results.txt](evidence/original-results.txt), [evidence/improved-results.txt](evidence/improved-results.txt) |
+| 3 | Evidence: helper results | [evidence/helper-results.txt](evidence/helper-results.txt), [evidence/helper-mutation-results.txt](evidence/helper-mutation-results.txt) ([script](evidence/helper-mutation-check.py)) |
 | 3 | Evidence: the six review items | [evidence/review-items.md](evidence/review-items.md) |
 | 3 | Evidence: does the skill's ticket tool block hold? | [evidence/tool-gate/results.md](evidence/tool-gate/results.md) |
 | 4 | Guardrail design | [guardrails.md](guardrails.md) |
@@ -82,12 +83,16 @@ For the original, use `from original.redact import redact`.
 
 ### Regenerate the saved results
 
-The saved results cover the 68 redactor tests only, because they were captured before the helper tests existed. These commands overwrite them:
+The redactor results cover the 68 redactor tests, and the helper results cover the 41 helper tests. These commands overwrite them:
 
 ```bash
 python3 -m unittest discover -s tests -p 'test_redact.py' -v > evidence/original-results.txt 2>&1
 REDACT_PATH=redact.py python3 -m unittest discover -s tests -p 'test_redact.py' -v > evidence/improved-results.txt 2>&1
+python3 -m unittest discover -s tests -p 'test_relay_rotate.py' -v > evidence/helper-results.txt 2>&1
+python3 evidence/helper-mutation-check.py > evidence/helper-mutation-results.txt 2>&1
 ```
+
+The mutation check breaks the helper nine ways, one at a time, in a temp copy, and reports whether the tests noticed each one.
 
 ## Run the helper
 

@@ -1,0 +1,46 @@
+test_a_real_refused_socket_is_recognised (test_relay_rotate.RelayRotateTest.test_a_real_refused_socket_is_recognised) ... ok
+test_ambiguous_failures_call_once_and_record_unknown_state (test_relay_rotate.RelayRotateTest.test_ambiguous_failures_call_once_and_record_unknown_state) ... ok
+test_audit_drops_fields_outside_the_allowlist (test_relay_rotate.RelayRotateTest.test_audit_drops_fields_outside_the_allowlist) ... ok
+test_audit_withholds_key_shaped_values_in_allowed_fields (test_relay_rotate.RelayRotateTest.test_audit_withholds_key_shaped_values_in_allowed_fields) ... ok
+test_bad_service_names_are_refused_before_any_call (test_relay_rotate.RelayRotateTest.test_bad_service_names_are_refused_before_any_call) ... ok
+test_bad_tickets_are_refused_before_any_call (test_relay_rotate.RelayRotateTest.test_bad_tickets_are_refused_before_any_call) ... ok
+test_credential_cannot_come_from_a_flag (test_relay_rotate.RelayRotateTest.test_credential_cannot_come_from_a_flag) ... ok
+test_credential_is_sent_only_in_the_header (test_relay_rotate.RelayRotateTest.test_credential_is_sent_only_in_the_header) ... ok
+test_definite_rejection_is_not_unknown_state (test_relay_rotate.RelayRotateTest.test_definite_rejection_is_not_unknown_state) ... ok
+test_errors_do_not_echo_what_the_agent_passed (test_relay_rotate.RelayRotateTest.test_errors_do_not_echo_what_the_agent_passed) ... ok
+test_every_rotate_after_the_token_check_leaves_intent_then_outcome_under_the_ticket (test_relay_rotate.RelayRotateTest.test_every_rotate_after_the_token_check_leaves_intent_then_outcome_under_the_ticket) ... ok
+test_force_flag_does_not_exist (test_relay_rotate.RelayRotateTest.test_force_flag_does_not_exist) ... ok
+test_intent_is_on_disk_before_the_rotate_call (test_relay_rotate.RelayRotateTest.test_intent_is_on_disk_before_the_rotate_call) ... ok
+test_key_returned_as_id_is_withheld (test_relay_rotate.RelayRotateTest.test_key_returned_as_id_is_withheld) ... ok
+test_key_shaped_values_in_the_key_list_are_withheld (test_relay_rotate.RelayRotateTest.test_key_shaped_values_in_the_key_list_are_withheld) ... ok
+test_log_appends_and_only_its_owner_can_read_it (test_relay_rotate.RelayRotateTest.test_log_appends_and_only_its_owner_can_read_it) ... ok
+test_longest_valid_service_name_is_accepted (test_relay_rotate.RelayRotateTest.test_longest_valid_service_name_is_accepted) ... ok
+test_missing_credential_makes_no_call (test_relay_rotate.RelayRotateTest.test_missing_credential_makes_no_call) ... ok
+test_missing_id_still_stores_the_key (test_relay_rotate.RelayRotateTest.test_missing_id_still_stores_the_key) ... ok
+test_no_rotation_if_the_intent_cannot_be_written (test_relay_rotate.RelayRotateTest.test_no_rotation_if_the_intent_cannot_be_written) ... ok
+test_non_ascii_token_makes_no_rotate_call (test_relay_rotate.RelayRotateTest.test_non_ascii_token_makes_no_rotate_call) ... ok
+test_other_failures_are_not_retried (test_relay_rotate.RelayRotateTest.test_other_failures_are_not_retried) ... ok
+test_plan_returns_only_the_token_and_changes_nothing (test_relay_rotate.RelayRotateTest.test_plan_returns_only_the_token_and_changes_nothing) ... ok
+test_proxy_environment_is_ignored (test_relay_rotate.RelayRotateTest.test_proxy_environment_is_ignored) ... ok
+test_redirect_is_not_followed (test_relay_rotate.RelayRotateTest.test_redirect_is_not_followed) ... ok
+test_refused_gives_up_after_the_retry_limit (test_relay_rotate.RelayRotateTest.test_refused_gives_up_after_the_retry_limit) ... ok
+test_refused_retries_then_succeeds (test_relay_rotate.RelayRotateTest.test_refused_retries_then_succeeds) ... ok
+test_refused_rotate_call_is_not_rotated_rather_than_unknown (test_relay_rotate.RelayRotateTest.test_refused_rotate_call_is_not_rotated_rather_than_unknown) ... ok
+test_rotate_requires_a_ticket (test_relay_rotate.RelayRotateTest.test_rotate_requires_a_ticket) ... ok
+test_rotate_requires_a_token (test_relay_rotate.RelayRotateTest.test_rotate_requires_a_token) ... ok
+test_rotate_stores_key_and_records_details_only_in_the_log (test_relay_rotate.RelayRotateTest.test_rotate_stores_key_and_records_details_only_in_the_log) ... ok
+test_rotation_does_not_count_as_done_if_the_outcome_cannot_be_written (test_relay_rotate.RelayRotateTest.test_rotation_does_not_count_as_done_if_the_outcome_cannot_be_written) ... ok
+test_secret_store_beats_the_environment (test_relay_rotate.RelayRotateTest.test_secret_store_beats_the_environment) ... ok
+test_shipped_store_stub_refuses_rather_than_dropping_the_key (test_relay_rotate.RelayRotateTest.test_shipped_store_stub_refuses_rather_than_dropping_the_key) ... ok
+test_short_rly_ids_are_not_withheld (test_relay_rotate.RelayRotateTest.test_short_rly_ids_are_not_withheld) ... ok
+test_store_failure_is_failed_and_the_log_says_what_happened (test_relay_rotate.RelayRotateTest.test_store_failure_is_failed_and_the_log_says_what_happened) ... ok
+test_token_from_another_service_is_refused (test_relay_rotate.RelayRotateTest.test_token_from_another_service_is_refused) ... ok
+test_token_goes_stale_when_keys_change (test_relay_rotate.RelayRotateTest.test_token_goes_stale_when_keys_change) ... ok
+test_unknown_state_records_the_key_a_timed_out_call_created (test_relay_rotate.RelayRotateTest.test_unknown_state_records_the_key_a_timed_out_call_created) ... ok
+test_unknown_state_survives_listing_failure (test_relay_rotate.RelayRotateTest.test_unknown_state_survives_listing_failure) ... ok
+test_wrong_token_makes_no_rotate_call (test_relay_rotate.RelayRotateTest.test_wrong_token_makes_no_rotate_call) ... ok
+
+----------------------------------------------------------------------
+Ran 41 tests in 1.453s
+
+OK
