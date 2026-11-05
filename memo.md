@@ -1,5 +1,5 @@
 # Decision Memo: relay-rotate-key v0.3
-The best course of action is to block v0.3 and ship v0.4 to a pilot only once the hook and helper are in place. The main reason is because v0.3 puts live keys where customers can read them by design and the filter meant to stop that misses most real key formats. 
+The best course of action is to block v0.3 and ship v0.4 to a pilot only once the hook and helper are in place. The main reason behind the version update is because v0.3 is prone to exposing and leaking keys to customers. v0.4 aims to fix some of the issues, as well as move the audit trail from the agent to the helper to create a more deterministic process that is less likely to expose information.
 
 ### What happened
 On Tuesday 14:02, the agent rotated the billing-sync key. The skill told it to post the full request and response to SUP-5521, and the comment was public. The redaction filter ran but didn't remove the new key. A reviewer spotted it at 14:20, but the key wasn't replaced until 14:31. It stayed valid for 11 minutes after we knew it was exposed. 
@@ -32,7 +32,7 @@ The 41 helper tests all pass, but against a fake Relay server, not the real one.
 - **Secret store:** it is a stub, so every successful rotation would return `failed` and log `ROTATED_NOT_STORED`, and the new key would be lost.
 - **Credential:** the helper still falls back to `$RELAY_KEY`, so the agent can read that key until the store exists.
 - **Audit log:** it is a local file. The agent can read it, and so see key IDs, unless the helper runs as a separate user, and root can edit it. It needs an append-only store that people tracing a ticket can search.
-- **Ticket access:** the ban on ticket writes is only an instruction until the agent's write access is removed. The packet doesn't say how the agent reaches tickets.
+- **Ticket access:** on top of its written ban, the skill now removes MCP tools when invoked and blocks them and subagents for the rest of the session. I tested this on Claude Code against a fake server (`evidence/tool-gate/results.md`). It makes a stray ticket write less likely but isn't a boundary, because Bash, a resumed session and Cursor all get past it. The agent's ticket credential must still be removed, and the packet doesn't say how the agent reaches tickets.
 - **Enforcement:** human approval is an instruction to the agent until the hook is built. `guardrails.md` has the design.
 - **Redaction:** nothing runs `redact.py` automatically yet. The skill no longer calls it.
 - **Relay API:** the helper assumes a list-keys call and a response format that the packet doesn't document.

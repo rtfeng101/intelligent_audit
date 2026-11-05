@@ -1,6 +1,14 @@
 ---
 name: relay-rotate-key
 description: Rotate a Relay service key when asked (keys start with rly_). Use only when the user explicitly asks to rotate a named Relay service's key. Not for AWS, GitHub, or other credentials, and not for discussing or reviewing past leaks.
+disallowed-tools: mcp__*
+hooks:
+  PreToolUse:
+    - matcher: "mcp__.*|Agent|Task"
+      hooks:
+        - type: command
+          command: "echo 'relay-rotate-key: MCP tools and subagents are blocked for the rest of this session. Start a new session for other work.' >&2; exit 2"
+          onFailure: block
 ---
 You never see key values, key IDs or fingerprints. Do not read `$RELAY_KEY`, the secret store or the audit log, and do not call Relay any other way. If the user pastes a key, do not repeat it, and tell them to treat it as leaked.
 

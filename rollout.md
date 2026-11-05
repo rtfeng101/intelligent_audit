@@ -39,6 +39,7 @@ The pilot is Claude Code only. Cursor users keep rotating by hand until its gaps
 
 - Agents trying to read the store, call Relay directly or get around the hook.
 - Agents trying to read the audit log or write to a ticket, and users pasting rotation results into tickets because the ticket no longer shows them.
+- Sessions resumed mid-rotation, which lose the ticket tool block, and complaints that a session loses its MCP tools after this skill runs.
 - On-call being overloaded, because every `failed` now reaches them, including harmless ones like a stale token.
 - Engineers going back to raw `curl`, which suggests the skill is getting in the way.
 - The skill firing on discussions of past leaks, or not firing when asked.

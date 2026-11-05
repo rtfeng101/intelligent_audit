@@ -33,7 +33,8 @@ Things I believed or assumed but did not check. I have no access to Relay, Jira 
 
 - **The skill's wording and triggering.** I have not run it in Claude Code or Cursor (review item 6).
 - **All of `guardrails.md` except the helper's own limits.** The managed settings sketch and the pre-pilot checks have not been run, and `sudo` may not work inside the sandbox.
-- **How the agent reaches tickets.** The packet doesn't say, so I don't know whether write access can be removed for this skill alone.
+- **How the agent reaches tickets.** The packet doesn't say, so I don't know whether write access can be removed for this skill alone. The skill's block assumes an MCP tool, and it does nothing for a ticket CLI or anything else run through Bash.
+- **How firmly the skill's tool block holds.** I ran each case once, with one model, in `-p` mode (`evidence/tool-gate/results.md`). I did not run an interactive session, Cursor, or the block under `allowManagedHooksOnly`, where I expect the hook not to run.
 - **How far the 11/5 rule reaches.** I read "any ticket" as also covering the helper and people, and I assumed key IDs and fingerprints are allowed in a log that isn't a ticket. Security should confirm both.
 - **Who can search the audit log.** I don't know who needs access or where it should live. `/var/log/relay-rotate/audit.log` is a placeholder, and the helper fails closed if it can't write there.
 - **The ticket ID format.** The helper accepts `PROJECT-123`, based only on `SUP-5521`. It can't check that a ticket exists.

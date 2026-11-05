@@ -1,6 +1,6 @@
 # Guardrail design: relay-rotate-key (draft)
 
-**Status:** Only the helper's own limits are built and tested (`tests/test_relay_rotate.py`). Everything else here is a design that has not been run.
+**Status:** Only the helper's own limits (`tests/test_relay_rotate.py`) and the skill's tool block (`evidence/tool-gate/results.md`) are built and tested. Everything else here is a design that has not been run.
 
 ## The design in brief
 
@@ -35,7 +35,7 @@ The agent may see service names, ticket IDs, the confirm token and `succeeded` o
 | Force a rotation or retry an ambiguous failure | There is no `--force`. The helper makes one attempt, and retries only when the connection is refused. | **Built and tested** |
 | Rotate from a stale plan | The confirm token is tied to the service and its current keys. | **Built and tested** |
 | Rotate without a human approving | Pilot: an `ask` rule and a `PreToolUse` hook on `rotate`. Target: the service requires approval outside the agent session. | Not built |
-| Write to the ticket system | Target: the agent has no ticket write access. Pilot: a hook denies ticket write tools. The helper has no ticket code. This replaces my earlier design, where the helper or the agent posted an `AUDIT:` line, which the 11/5 rule forbids. | Not built. The packet doesn't say how the agent reaches tickets. |
+| Write to the ticket system | Target: the agent has no ticket credential. Now: the skill's `disallowed-tools` removes MCP tools on the turn it is invoked, and its `PreToolUse` hook blocks MCP tools and subagents for the rest of the session. The helper has no ticket code. This replaces my earlier design, where the helper or the agent posted an `AUDIT:` line, which the 11/5 rule forbids. | **Partly built and tested** on Claude Code against a fake server. Bash, resumed sessions and Cursor get past it. The credential is not removed, because the packet doesn't say how the agent reaches tickets. |
 | Turn these controls off | Managed settings, which user and project settings cannot override. | Not built |
 
 **Sketch of Claude Code managed settings (not run):**
@@ -72,6 +72,7 @@ The OS and service controls work the same in both. Only the top layer differs:
 | Need | Claude Code | Cursor |
 |---|---|---|
 | Block or prompt before a command | `PreToolUse`, with `permissionDecision` | `beforeShellExecution` and `beforeReadFile`, with `permission` |
+| Block a tool for one skill | `disallowed-tools` clears on the next message, so it needs a skill `hooks` entry too (tested) | No tool field on skills. `beforeMCPExecution` can deny MCP calls, but not per skill (not run) |
 | Block if the hook fails | `"onFailure": "block"` | `failClosed: true` |
 | Central enforcement | `managed-settings.json` | Enterprise `hooks.json`. The docs do not state outright that users cannot override it. |
 | Clean output before the model sees it | `PostToolUse` with `updatedToolOutput` | None found: `afterShellExecution` is described only for auditing |
@@ -89,6 +90,7 @@ These depend on judgement or are not worth enforcing:
 
 - When to use the skill, and checking the service name with the user
 - Always asking for confirmation. The instruction shapes the conversation, and the approval control above enforces it.
+- The written ban on ticket writes. It tells the agent what to say when asked to post, and it covers ticket routes the tool block misses, such as Bash.
 - Not repeating a key the user pastes
 - Not retrying after `failed`, and sending the user to on-call with the ticket ID. The helper does not refuse a second rotation while an intent has no outcome.
 - Reminding the user that the service must pick up the new key
@@ -106,6 +108,7 @@ These depend on judgement or are not worth enforcing:
 8. **A wrong ticket ID.** The helper checks the format but cannot read tickets, so a well-formed wrong ID files the record where nobody will look. The service name and time still find it.
 9. **A gap in the audit trail.** The helper reports on itself, so a rotation made outside it leaves no record. If the outcome write fails, only the intent remains. Comparing the log with Relay's key list is the only independent check.
 10. **People.** A user can still paste a result into a ticket by hand. This design only stops the agent.
+11. **Ticket writes that skip the skill's block.** A ticket CLI or `curl` through Bash, a session resumed in a new process (tested: the write went through), a session where the skill was never invoked, a ticket tool that isn't MCP, or hooks being turned off. Only removing the ticket credential closes these.
 
 ## Checks before the pilot
 
@@ -117,7 +120,7 @@ Run these as the agent, on a pilot machine. None have been run yet. Every one mu
 | `cat` the store, then the same through `python3 -c "open(...)"` | Permission denied |
 | `sudo -n cat` the store, including straight after a human used `sudo` | Refused |
 | `cat` the audit log, then edit it | Permission denied |
-| Add a comment to a test ticket | Refused |
+| Add a comment to a test ticket with the ticket tool, with `curl` or a ticket CLI, and after resuming the session | Refused |
 | Edit the deployed helper | Permission denied |
 | `curl` Relay directly | No route |
 | Run `rotate` through `sh -c`, or with the helper's path written differently | Refused by sudoers, or prompts |
@@ -126,6 +129,7 @@ Run these as the agent, on a pilot machine. None have been run yet. Every one mu
 
 ## Open questions
 
+- **The skill's hook and `allowManagedHooksOnly`:** the sketch above sets this, and the docs say it blocks hooks other than managed ones and those from force-enabled plugins. I expect the skill's hook not to run under it, so the skill would need to ship in a force-enabled plugin. Not tested.
 - **Sandbox and `sudo`:** `sudo` may not work inside the sandbox, so the sketch excludes the helper from it. The exclusion matches command text and needs testing. If it proves weak, go straight to the service.
 - **A dedicated rotation credential:** the packet only shows the service's own key being used to rotate itself. A separate credential would fix item 5's 401 and stop a leaked key from rotating itself, if Relay supports one.
 - **Skill path:** the skill calls `python3 skill/relay_rotate.py` for the mock. Before rollout it must call the deployed command, or the rules above will not match it.
@@ -139,3 +143,4 @@ Claude Code and Cursor docs, read 2026-11-04 by an AI agent on my behalf. Check 
 - Cursor's run-modes page returned 404.
 - [Claude Code permissions](https://code.claude.com/docs/en/permissions), [hooks](https://code.claude.com/docs/en/hooks), [sandboxing](https://code.claude.com/docs/en/sandboxing), [managed settings](https://code.claude.com/docs/en/managed-settings), [environment variables](https://code.claude.com/docs/en/env-vars)
 - [Cursor hooks](https://cursor.com/docs/agent/hooks), [terminal](https://cursor.com/docs/agent/terminal), [ignore files](https://cursor.com/docs/context/ignore-files)
+- Read 2026-11-05: [Claude Code skills](https://code.claude.com/docs/en/skills), [settings reference](https://code.claude.com/docs/en/settings-reference), [Cursor skills](https://cursor.com/docs/context/skills)

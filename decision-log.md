@@ -41,3 +41,7 @@
     - Need to remove and enforce ticket writing down the line
 - Moving audit trail into the helper since the key lives there anyways
 - Minorly tested skill and tested helper
+
+11:23am: Removed ticket writing permissions from the skill
+- Avoid stringly rules via permission reduction
+- Reviewed code

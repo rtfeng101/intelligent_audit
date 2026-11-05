@@ -17,6 +17,7 @@ https://www.loom.com/share/24e0fbf660fd441da6cccef728885b2a
 | 3 | Evidence: inputs | [tests/inputs/](tests/inputs/) |
 | 3 | Evidence: results | [evidence/original-results.txt](evidence/original-results.txt), [evidence/improved-results.txt](evidence/improved-results.txt) |
 | 3 | Evidence: the six review items | [evidence/review-items.md](evidence/review-items.md) |
+| 3 | Evidence: does the skill's ticket tool block hold? | [evidence/tool-gate/results.md](evidence/tool-gate/results.md) |
 | 4 | Guardrail design | [guardrails.md](guardrails.md) |
 | 5 | Rollout plan | [rollout.md](rollout.md) |
 | 6 | Unverified list | [unverified.md](unverified.md) |
